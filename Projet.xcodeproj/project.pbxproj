@@ -25,7 +25,8 @@
 		76E600C4192A59DC003254E0 /* QGLViewer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76E600C3192A59DC003254E0 /* QGLViewer.framework */; };
 		76E600C7192A5A49003254E0 /* GLViewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600C5192A5A49003254E0 /* GLViewer.cpp */; };
 		76E600CA192A5A7A003254E0 /* QTUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600C8192A5A7A003254E0 /* QTUtils.cpp */; };
-		76E600CD192A5A8C003254E0 /* Window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600CB192A5A8C003254E0 /* Window.cpp */; };
+		76E600D1192A624C003254E0 /* Window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600CF192A624C003254E0 /* Window.cpp */; };
+		76E600D4192A6276003254E0 /* RayTracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600D2192A6276003254E0 /* RayTracer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -74,8 +75,10 @@
 		76E600C6192A5A49003254E0 /* GLViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLViewer.h; sourceTree = "<group>"; };
 		76E600C8192A5A7A003254E0 /* QTUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = QTUtils.cpp; sourceTree = "<group>"; };
 		76E600C9192A5A7A003254E0 /* QTUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QTUtils.h; sourceTree = "<group>"; };
-		76E600CB192A5A8C003254E0 /* Window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Window.cpp; sourceTree = "<group>"; };
-		76E600CC192A5A8C003254E0 /* Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Window.h; sourceTree = "<group>"; };
+		76E600CF192A624C003254E0 /* Window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Window.cpp; sourceTree = "<group>"; };
+		76E600D0192A624C003254E0 /* Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Window.h; sourceTree = "<group>"; };
+		76E600D2192A6276003254E0 /* RayTracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RayTracer.cpp; sourceTree = "<group>"; };
+		76E600D3192A6276003254E0 /* RayTracer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RayTracer.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,14 +133,16 @@
 				76E600A6192A58AC003254E0 /* Mesh.h */,
 				76E600A7192A58AC003254E0 /* Object.cpp */,
 				76E600A8192A58AC003254E0 /* Object.h */,
+				76E600D2192A6276003254E0 /* RayTracer.cpp */,
+				76E600D3192A6276003254E0 /* RayTracer.h */,
 				76E600A9192A58AC003254E0 /* Ray.cpp */,
 				76E600B6192A58C7003254E0 /* Vertex.cpp */,
 				76E600B7192A58C7003254E0 /* Vertex.h */,
+				76E600CF192A624C003254E0 /* Window.cpp */,
+				76E600D0192A624C003254E0 /* Window.h */,
 				76E600AA192A58AC003254E0 /* Ray.h */,
 				76E600AB192A58AC003254E0 /* Scene.cpp */,
 				76E600AC192A58AC003254E0 /* Scene.h */,
-				76E600CB192A5A8C003254E0 /* Window.cpp */,
-				76E600CC192A5A8C003254E0 /* Window.h */,
 				76E600AD192A58AC003254E0 /* Triangle.cpp */,
 				76E600AE192A58AC003254E0 /* Triangle.h */,
 				76E6009F192A5893003254E0 /* Vec3D.h */,
@@ -223,7 +228,8 @@
 				76E600B8192A58C7003254E0 /* Vertex.cpp in Sources */,
 				76E600C7192A5A49003254E0 /* GLViewer.cpp in Sources */,
 				76E600CA192A5A7A003254E0 /* QTUtils.cpp in Sources */,
-				76E600CD192A5A8C003254E0 /* Window.cpp in Sources */,
+				76E600D1192A624C003254E0 /* Window.cpp in Sources */,
+				76E600D4192A6276003254E0 /* RayTracer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -292,9 +298,24 @@
 		76E60098192A5819003254E0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CONFIGURATION_BUILD_DIR = bin;
+				ENABLE_NS_ASSERTIONS = "";
+				EXCLUDED_RECURSIVE_SEARCH_PATH_SUBDIRECTORIES = "*.nib *.lproj *.gch *.xcode* (*) .DS_Store CVS .svn .git .hg";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/lib,
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = NO;
+				GCC_WARN_UNINITIALIZED_AUTOS = NO;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"/usr/local/lib/**",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = "";
@@ -304,9 +325,24 @@
 		76E60099192A5819003254E0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CONFIGURATION_BUILD_DIR = bin;
+				ENABLE_NS_ASSERTIONS = NO;
+				EXCLUDED_RECURSIVE_SEARCH_PATH_SUBDIRECTORIES = "*.nib *.lproj *.gch *.xcode* (*) .DS_Store CVS .svn .git .hg";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/lib,
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = NO;
+				GCC_WARN_UNINITIALIZED_AUTOS = NO;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"/usr/local/lib/**",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = "";
@@ -332,6 +368,7 @@
 				76E60099192A5819003254E0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

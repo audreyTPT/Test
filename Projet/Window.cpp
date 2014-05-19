@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+#include <OpenGL/gl.h>
 #include "Window.h"
 
 #include <vector>
