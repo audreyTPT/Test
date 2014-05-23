@@ -14,21 +14,21 @@
 #include <vector>
 #include <string>
 
-#include "Scene.h"
+#include "Object.h"
 
 class GLViewer : public QGLViewer  {
     Q_OBJECT
 public:
     
     typedef enum {Flat=0, Smooth=1} RenderingMode;
-    typedef enum {OpenGLDisplayMode=0, RayDisplayMode=1} DisplayMode;
+    //typedef enum {OpenGLDisplayMode=0, RayDisplayMode=1} DisplayMode;
     
     GLViewer ();
     virtual ~GLViewer ();
     
     inline bool isWireframe () const { return wireframe; }
     inline int getRenderingMode () const { return renderingMode; }
-    inline const QImage & getRayImage () const { return rayImage; }
+    //inline const QImage & getRayImage () const { return rayImage; }
     
     class Exception  {
     public:
@@ -43,9 +43,9 @@ public slots :
     void setWireframe (bool b);
     void setRenderingMode (RenderingMode m);
     void setRenderingMode (int m) { setRenderingMode (static_cast<RenderingMode>(m)); }
-    void setDisplayMode (DisplayMode m);
-    void setDisplayMode (int m) { setRenderingMode (static_cast<DisplayMode>(m)); }
-    void setRayImage (const QImage & image);
+    //void setDisplayMode (DisplayMode m);
+    //void setDisplayMode (int m) { setRenderingMode (static_cast<DisplayMode>(m)); }
+    //void setRayImage (const QImage & image);
     
 protected :
     void init();
@@ -60,8 +60,9 @@ protected :
 private:
     bool wireframe;
     RenderingMode renderingMode;
-    DisplayMode displayMode;
-    QImage rayImage;
+    Object object;
+    //DisplayMode displayMode;
+    //QImage rayImage;
 };
 
 #endif // GLVIEWER_H

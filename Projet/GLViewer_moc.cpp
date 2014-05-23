@@ -22,7 +22,7 @@ static const uint qt_meta_data_GLViewer[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       6,   14, // methods
+       3,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -33,9 +33,6 @@ static const uint qt_meta_data_GLViewer[] = {
        9,   28,   30,   30, 0x0a,
       31,   63,   30,   30, 0x0a,
       65,   63,   30,   30, 0x0a,
-      87,   63,   30,   30, 0x0a,
-     115,   63,   30,   30, 0x0a,
-     135,  155,   30,   30, 0x0a,
 
        0        // eod
 };
@@ -43,9 +40,7 @@ static const uint qt_meta_data_GLViewer[] = {
 static const char qt_meta_stringdata_GLViewer[] = {
     "GLViewer\0setWireframe(bool)\0b\0\0"
     "setRenderingMode(RenderingMode)\0m\0"
-    "setRenderingMode(int)\0setDisplayMode(DisplayMode)\0"
-    "setDisplayMode(int)\0setRayImage(QImage)\0"
-    "image\0"
+    "setRenderingMode(int)\0"
 };
 
 void GLViewer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -57,9 +52,6 @@ void GLViewer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, vo
         case 0: _t->setWireframe((*reinterpret_cast< bool(*)>(_a[1]))); break;
         case 1: _t->setRenderingMode((*reinterpret_cast< RenderingMode(*)>(_a[1]))); break;
         case 2: _t->setRenderingMode((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 3: _t->setDisplayMode((*reinterpret_cast< DisplayMode(*)>(_a[1]))); break;
-        case 4: _t->setDisplayMode((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 5: _t->setRayImage((*reinterpret_cast< const QImage(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -97,9 +89,9 @@ int GLViewer::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 6)
+        if (_id < 3)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 6;
+        _id -= 3;
     }
     return _id;
 }

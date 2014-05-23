@@ -46,6 +46,9 @@ public:
     void renderGL (bool flat) const;
     
     void loadOFF (const std::string & filename);
+    void rotateAroundX(float angle);
+    void rotateAroundY(float angle);
+    void rotateAroundZ(float angle);
   
     class Exception {
     private: 

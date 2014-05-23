@@ -22,7 +22,7 @@ static const uint qt_meta_data_Window[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       6,   14, // methods
+       3,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -30,20 +30,16 @@ static const uint qt_meta_data_Window[] = {
        0,       // signalCount
 
  // slots: signature, parameters, type, tag, flags
-       7,   24,   24,   24, 0x0a,
-      25,   24,   24,   24, 0x0a,
-      38,   24,   24,   24, 0x0a,
-      53,   24,   24,   24, 0x0a,
-      69,   24,   24,   24, 0x0a,
-      86,   24,   24,   24, 0x0a,
+       7,   20,   20,   20, 0x0a,
+      21,   20,   20,   20, 0x0a,
+      37,   20,   20,   20, 0x0a,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_Window[] = {
-    "Window\0renderRayImage()\0\0setBGColor()\0"
-    "showRayImage()\0exportGLImage()\0"
-    "exportRayImage()\0about()\0"
+    "Window\0setBGColor()\0\0exportGLImage()\0"
+    "about()\0"
 };
 
 void Window::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -52,12 +48,9 @@ void Window::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         Q_ASSERT(staticMetaObject.cast(_o));
         Window *_t = static_cast<Window *>(_o);
         switch (_id) {
-        case 0: _t->renderRayImage(); break;
-        case 1: _t->setBGColor(); break;
-        case 2: _t->showRayImage(); break;
-        case 3: _t->exportGLImage(); break;
-        case 4: _t->exportRayImage(); break;
-        case 5: _t->about(); break;
+        case 0: _t->setBGColor(); break;
+        case 1: _t->exportGLImage(); break;
+        case 2: _t->about(); break;
         default: ;
         }
     }
@@ -96,9 +89,9 @@ int Window::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 6)
+        if (_id < 3)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 6;
+        _id -= 3;
     }
     return _id;
 }

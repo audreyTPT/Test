@@ -21,6 +21,13 @@ static const GLuint OpenGLLightID[] = {GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT
 GLViewer::GLViewer () : QGLViewer () {
     wireframe = false;
     renderingMode = Smooth;
+    
+    Mesh ramMesh;
+    ramMesh.loadOFF ("models/ram.off");
+    ramMesh.rotateAroundX(M_PI/2);
+    Material ramMat (1.f, 1.f, Vec3Df (1.f, .6f, .2f));
+    object  = Object(ramMesh, ramMat);
+
 }
 
 GLViewer::~GLViewer () {
@@ -40,10 +47,10 @@ void GLViewer::setRenderingMode (RenderingMode m) {
     updateGL ();
 }
 
-void GLViewer::setDisplayMode (DisplayMode m) {
+/*void GLViewer::setDisplayMode (DisplayMode m) {
     displayMode = m;
     updateGL ();
-}
+}*/
 
 QString GLViewer::helpString() const {
   QString text("<h2>Raymini</h2>");
@@ -76,13 +83,13 @@ void GLViewer::keyReleaseEvent (QKeyEvent * /*event*/) {
 }
 
 void GLViewer::mousePressEvent (QMouseEvent * event) {
-    setDisplayMode (OpenGLDisplayMode);
+    //setDisplayMode (OpenGLDisplayMode);
     QGLViewer::mousePressEvent(event);
 }
 
 
 void GLViewer::wheelEvent (QWheelEvent * e) {
-    setDisplayMode (OpenGLDisplayMode);
+    //setDisplayMode (OpenGLDisplayMode);
     QGLViewer::wheelEvent (e);
 }
 
@@ -98,74 +105,49 @@ void GLViewer::init() {
     glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
     glEnable (GL_POINT_SMOOTH);
 
-    Scene * scene = Scene::getInstance ();
-
     glLoadIdentity ();
-    
-    glEnable (GL_LIGHTING);
-    for (unsigned int i = 0; i < scene->getLights ().size () && i < 8; i++) {
-        GLuint glID = OpenGLLightID[i];
-        glEnable (glID);
-        const Light light = scene->getLights() [i];
-        const Vec3Df & p = light.getPos ();
-        float intensity = light.getIntensity ();
-        const Vec3Df & c = intensity * light.getColor ();
-        GLfloat glPos[4] = {p[0], p[1], p[2], 0};
-        GLfloat glColor[4] = {c[0], c[1], c[2], 0};
-        glLightfv (glID, GL_POSITION, glPos);
-        glLightfv (glID, GL_DIFFUSE, glColor);
-    }
-    
-    const BoundingBox & sceneBBox = scene->getBoundingBox ();
-    Vec3Df c = sceneBBox.getCenter ();
-    float r = sceneBBox.getRadius ();
+
+    const BoundingBox & box = object.getBoundingBox();
+    Vec3Df c = box.getCenter();
+    float r = box.getRadius() + 1;
     setSceneCenter (qglviewer::Vec (c[0], c[1], c[2]));
     setSceneRadius (r);
     showEntireScene ();
 }
 
 void GLViewer::draw () {
-    if (displayMode == RayDisplayMode) {
-        glDrawPixels (rayImage.width (),
-                      rayImage.height (),
-                      GL_RGB,
-                      GL_UNSIGNED_BYTE,
-                      rayImage.bits ());
-        return;
+    
+    
+    const Vec3Df & trans = object.getTrans();
+    glPushMatrix();
+    glTranslatef(trans[0], trans[1], trans[2]);
+    const Vec3Df & color = object.getMaterial().getColor();
+    float dif = object.getMaterial().getDiffuse();
+    float spec = object.getMaterial().getSpecular();
+    static GLfloat glMatDiff[4];
+    static GLfloat glMatSpec[4];
+    static const GLfloat glMatAmb[4] = {0.f, 0.f, 0.f, 1.f};
+    for (unsigned int j = 0; j < 3; j++) {
+        glMatDiff[j] = dif*color[j];
+        glMatSpec[j] = spec;
     }
-    Scene * scene = Scene::getInstance ();
-    for (unsigned int i = 0; i < scene->getObjects ().size (); i++) {
-        const Object & o = scene->getObjects ()[i];
-        const Vec3Df & trans = o.getTrans ();
-        glPushMatrix ();
-        glTranslatef (trans[0], trans[1], trans[2]);
-        const Material & mat = o.getMaterial ();
-        const Vec3Df & color = mat.getColor ();
-        float dif = mat.getDiffuse ();
-        float spec = mat.getSpecular ();
-        static GLfloat glMatDiff[4]; 
-        static GLfloat glMatSpec[4];
-        static const GLfloat glMatAmb[4] = {0.f, 0.f, 0.f, 1.f};
-        for (unsigned int j = 0; j < 3; j++) {
-            glMatDiff[j] = dif*color[j];
-            glMatSpec[j] = spec;
-        }
-        glMatDiff[3] = 1.0f;
-        glMatSpec[3] = 1.0f;
-
-        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, glMatDiff);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, glMatSpec);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, glMatAmb);
-        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 128);
-        glDisable (GL_COLOR_MATERIAL);
-        o.getMesh ().renderGL (renderingMode == Flat);
-        glPopMatrix ();
-    }
+    glMatDiff[3] = 1.0f;
+    glMatSpec[3] = 1.0f;
+    
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, glMatDiff);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, glMatSpec);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, glMatAmb);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 128);
+    glDisable (GL_COLOR_MATERIAL);
+    object.getMesh().renderGL(renderingMode == Flat);
+    glPopMatrix();
+    
+    
 }
 
-void GLViewer::setRayImage (const QImage & image) {
+/*void GLViewer::setRayImage (const QImage & image) {
     rayImage = image;
-}
+}*/
 
 
 

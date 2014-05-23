@@ -34,7 +34,7 @@
 #include <QFileDialog>
 #include <QStatusBar>
 
-#include "RayTracer.h"
+//#include "RayTracer.h"
 
 using namespace std;
 
@@ -62,7 +62,7 @@ Window::~Window () {
 
 }
 
-void Window::renderRayImage () {
+/*void Window::renderRayImage () {
     qglviewer::Camera * cam = viewer->camera ();
     RayTracer * rayTracer = RayTracer::getInstance ();
     qglviewer::Vec p = cam->position ();
@@ -87,34 +87,34 @@ void Window::renderRayImage () {
                              QString::number (screenWidth) + QString ("x") + QString::number (screenHeight) +
                              QString (" screen resolution"));
     viewer->setDisplayMode (GLViewer::RayDisplayMode);
-}
+}*/
 
 void Window::setBGColor () {
     QColor c = QColorDialog::getColor (QColor (133, 152, 181), this);
     if (c.isValid () == true) {
         cout << c.red () << endl;
-        RayTracer::getInstance ()->setBackgroundColor (Vec3Df (c.red (), c.green (), c.blue ()));
+        //RayTracer::getInstance ()->setBackgroundColor (Vec3Df (c.red (), c.green (), c.blue ()));
         viewer->setBackgroundColor (c);
         viewer->updateGL ();
     }
 }
 
-void Window::showRayImage () {
+/*void Window::showRayImage () {
     viewer->setDisplayMode (GLViewer::RayDisplayMode);
-}
+}*/
 
 void Window::exportGLImage () {
     viewer->saveSnapshot (false, false);
 }
 
-void Window::exportRayImage () {
+/*void Window::exportRayImage () {
     QString filename = QFileDialog::getSaveFileName (this,
                                                      "Save ray-traced image",
                                                      ".",
                                                      "*.jpg *.bmp *.png");
     if (!filename.isNull () && !filename.isEmpty ())
         viewer->getRayImage().save (filename);
-}
+}*/
 
 void Window::about () {
     QMessageBox::about (this, 
@@ -149,7 +149,7 @@ void Window::initControlWidget () {
 
     layout->addWidget (previewGroupBox);
     
-    QGroupBox * rayGroupBox = new QGroupBox ("Ray Tracing", controlWidget);
+    /*QGroupBox * rayGroupBox = new QGroupBox ("Ray Tracing", controlWidget);
     QVBoxLayout * rayLayout = new QVBoxLayout (rayGroupBox);
     QPushButton * rayButton = new QPushButton ("Render", rayGroupBox);
     rayLayout->addWidget (rayButton);
@@ -161,7 +161,7 @@ void Window::initControlWidget () {
     connect (saveButton, SIGNAL (clicked ()) , this, SLOT (exportRayImage ()));
     rayLayout->addWidget (saveButton);
 
-    layout->addWidget (rayGroupBox);
+    layout->addWidget (rayGroupBox);*/
     
     QGroupBox * globalGroupBox = new QGroupBox ("Global Settings", controlWidget);
     QVBoxLayout * globalLayout = new QVBoxLayout (globalGroupBox);

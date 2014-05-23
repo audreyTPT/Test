@@ -209,3 +209,45 @@ void Mesh::loadOFF (const std::string & filename) {
     input.close ();
     recomputeSmoothVertexNormals (0);
 }
+
+void Mesh::rotateAroundZ(float angle)
+{
+    vector<Vertex> v;
+    for (int i = 0; i < vertices.size(); i++) {
+        Vec3Df newV;
+        Vec3Df V = vertices[i].getPos();
+        newV[0] = cos(angle) * V[0] + sin(angle) * V[1];
+        newV[1] = -sin(angle) * V[0] + cos(angle) * V[1];
+        newV[2] = V[2];
+        vertices[i].setPos(newV);
+    }
+    recomputeSmoothVertexNormals(0);
+}
+
+void Mesh::rotateAroundY(float angle)
+{
+    vector<Vertex> v;
+    for (int i = 0; i < vertices.size(); i++) {
+        Vec3Df newV;
+        Vec3Df V = vertices[i].getPos();
+        newV[0] = cos(angle) * V[0] + sin(angle) * V[2];
+        newV[1] = V[1];
+        newV[2] = -sin(angle) * V[0] + cos(angle) * V[2];
+        vertices[i].setPos(newV);
+    }
+    recomputeSmoothVertexNormals(0);
+}
+
+void Mesh::rotateAroundX(float angle)
+{
+    vector<Vertex> v;
+    for (int i = 0; i < vertices.size(); i++) {
+        Vec3Df newV;
+        Vec3Df V = vertices[i].getPos();
+        newV[0] = V[0];
+        newV[1] = cos(angle) * V[1] + sin(angle) * V[2];
+        newV[2] = -sin(angle) * V[1] + cos(angle) * V[2];
+        vertices[i].setPos(newV);
+    }
+    recomputeSmoothVertexNormals(0);
+}
