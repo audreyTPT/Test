@@ -62,33 +62,6 @@ Window::~Window () {
 
 }
 
-/*void Window::renderRayImage () {
-    qglviewer::Camera * cam = viewer->camera ();
-    RayTracer * rayTracer = RayTracer::getInstance ();
-    qglviewer::Vec p = cam->position ();
-    qglviewer::Vec d = cam->viewDirection ();
-    qglviewer::Vec u = cam->upVector ();
-    qglviewer::Vec r = cam->rightVector ();
-    Vec3Df camPos (p[0], p[1], p[2]);
-    Vec3Df viewDirection (d[0], d[1], d[2]);
-    Vec3Df upVector (u[0], u[1], u[2]);
-    Vec3Df rightVector (r[0], r[1], r[2]);
-    float fieldOfView = cam->fieldOfView ();
-    float aspectRatio = cam->aspectRatio ();
-    unsigned int screenWidth = cam->screenWidth ();
-    unsigned int screenHeight = cam->screenHeight ();
-    QTime timer;
-    timer.start ();
-    viewer->setRayImage(rayTracer->render (camPos, viewDirection, upVector, rightVector,
-                        fieldOfView, aspectRatio, screenWidth, screenHeight));
-    statusBar()->showMessage(QString ("Raytracing performed in ") +
-                             QString::number (timer.elapsed ()) +
-                             QString ("ms at ") +
-                             QString::number (screenWidth) + QString ("x") + QString::number (screenHeight) +
-                             QString (" screen resolution"));
-    viewer->setDisplayMode (GLViewer::RayDisplayMode);
-}*/
-
 void Window::setBGColor () {
     QColor c = QColorDialog::getColor (QColor (133, 152, 181), this);
     if (c.isValid () == true) {
@@ -99,22 +72,9 @@ void Window::setBGColor () {
     }
 }
 
-/*void Window::showRayImage () {
-    viewer->setDisplayMode (GLViewer::RayDisplayMode);
-}*/
-
 void Window::exportGLImage () {
     viewer->saveSnapshot (false, false);
 }
-
-/*void Window::exportRayImage () {
-    QString filename = QFileDialog::getSaveFileName (this,
-                                                     "Save ray-traced image",
-                                                     ".",
-                                                     "*.jpg *.bmp *.png");
-    if (!filename.isNull () && !filename.isEmpty ())
-        viewer->getRayImage().save (filename);
-}*/
 
 void Window::about () {
     QMessageBox::about (this, 
@@ -148,20 +108,6 @@ void Window::initControlWidget () {
     previewLayout->addWidget (snapshotButton);
 
     layout->addWidget (previewGroupBox);
-    
-    /*QGroupBox * rayGroupBox = new QGroupBox ("Ray Tracing", controlWidget);
-    QVBoxLayout * rayLayout = new QVBoxLayout (rayGroupBox);
-    QPushButton * rayButton = new QPushButton ("Render", rayGroupBox);
-    rayLayout->addWidget (rayButton);
-    connect (rayButton, SIGNAL (clicked ()), this, SLOT (renderRayImage ()));
-    QPushButton * showButton = new QPushButton ("Show", rayGroupBox);
-    rayLayout->addWidget (showButton);
-    connect (showButton, SIGNAL (clicked ()), this, SLOT (showRayImage ()));
-    QPushButton * saveButton  = new QPushButton ("Save", rayGroupBox);
-    connect (saveButton, SIGNAL (clicked ()) , this, SLOT (exportRayImage ()));
-    rayLayout->addWidget (saveButton);
-
-    layout->addWidget (rayGroupBox);*/
     
     QGroupBox * globalGroupBox = new QGroupBox ("Global Settings", controlWidget);
     QVBoxLayout * globalLayout = new QVBoxLayout (globalGroupBox);

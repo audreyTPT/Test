@@ -18,7 +18,7 @@
 class Object {
 public:
     inline Object () {}
-    inline Object (const Mesh & mesh, const Material & mat) : mesh (mesh), mat (mat) {
+    inline Object (const Mesh & mesh) : mesh (mesh) {
         updateBoundingBox ();
     }
     virtual ~Object () {}
@@ -29,15 +29,15 @@ public:
     inline const Mesh & getMesh () const { return mesh; }
     inline Mesh & getMesh () { return mesh; }
     
-    inline const Material & getMaterial () const { return mat; }
-    inline Material & getMaterial () { return mat; }
+    //inline const Material & getMaterial () const { return mat; }
+    //inline Material & getMaterial () { return mat; }
 
     inline const BoundingBox & getBoundingBox () const { return bbox; }
     void updateBoundingBox ();
     
 private:
     Mesh mesh;
-    Material mat;
+    //Material mat;
     BoundingBox bbox;
     Vec3Df trans;
 };

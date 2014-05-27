@@ -16,17 +16,15 @@
 
 using namespace std;
 
-static const GLuint OpenGLLightID[] = {GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7};
-
 GLViewer::GLViewer () : QGLViewer () {
     wireframe = false;
     renderingMode = Smooth;
     
     Mesh ramMesh;
-    ramMesh.loadOFF ("models/ram.off");
+    ramMesh.loadOBJ ("models/skeltry.obj");
     ramMesh.rotateAroundX(M_PI/2);
-    Material ramMat (1.f, 1.f, Vec3Df (1.f, .6f, .2f));
-    object  = Object(ramMesh, ramMat);
+    //Material ramMat (1.f, 1.f, Vec3Df (1.f, .6f, .2f));
+    object  = Object(ramMesh);
 
 }
 
@@ -46,11 +44,6 @@ void GLViewer::setRenderingMode (RenderingMode m) {
     renderingMode = m;
     updateGL ();
 }
-
-/*void GLViewer::setDisplayMode (DisplayMode m) {
-    displayMode = m;
-    updateGL ();
-}*/
 
 QString GLViewer::helpString() const {
   QString text("<h2>Raymini</h2>");
@@ -83,13 +76,11 @@ void GLViewer::keyReleaseEvent (QKeyEvent * /*event*/) {
 }
 
 void GLViewer::mousePressEvent (QMouseEvent * event) {
-    //setDisplayMode (OpenGLDisplayMode);
     QGLViewer::mousePressEvent(event);
 }
 
 
 void GLViewer::wheelEvent (QWheelEvent * e) {
-    //setDisplayMode (OpenGLDisplayMode);
     QGLViewer::wheelEvent (e);
 }
 
@@ -121,7 +112,7 @@ void GLViewer::draw () {
     const Vec3Df & trans = object.getTrans();
     glPushMatrix();
     glTranslatef(trans[0], trans[1], trans[2]);
-    const Vec3Df & color = object.getMaterial().getColor();
+    /*const Vec3Df & color = object.getMaterial().getColor();
     float dif = object.getMaterial().getDiffuse();
     float spec = object.getMaterial().getSpecular();
     static GLfloat glMatDiff[4];
@@ -133,21 +124,17 @@ void GLViewer::draw () {
     }
     glMatDiff[3] = 1.0f;
     glMatSpec[3] = 1.0f;
-    
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, glMatDiff);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, glMatSpec);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, glMatAmb);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 128);
-    glDisable (GL_COLOR_MATERIAL);
+    */
+    //glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, glMatDiff);
+    //glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, glMatSpec);
+    //glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, glMatAmb);
+    //glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 128);
+    //glDisable (GL_COLOR_MATERIAL);
     object.getMesh().renderGL(renderingMode == Flat);
     glPopMatrix();
     
     
 }
-
-/*void GLViewer::setRayImage (const QImage & image) {
-    rayImage = image;
-}*/
 
 
 

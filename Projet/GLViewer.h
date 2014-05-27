@@ -21,14 +21,12 @@ class GLViewer : public QGLViewer  {
 public:
     
     typedef enum {Flat=0, Smooth=1} RenderingMode;
-    //typedef enum {OpenGLDisplayMode=0, RayDisplayMode=1} DisplayMode;
     
     GLViewer ();
     virtual ~GLViewer ();
     
     inline bool isWireframe () const { return wireframe; }
     inline int getRenderingMode () const { return renderingMode; }
-    //inline const QImage & getRayImage () const { return rayImage; }
     
     class Exception  {
     public:
@@ -43,9 +41,6 @@ public slots :
     void setWireframe (bool b);
     void setRenderingMode (RenderingMode m);
     void setRenderingMode (int m) { setRenderingMode (static_cast<RenderingMode>(m)); }
-    //void setDisplayMode (DisplayMode m);
-    //void setDisplayMode (int m) { setRenderingMode (static_cast<DisplayMode>(m)); }
-    //void setRayImage (const QImage & image);
     
 protected :
     void init();
@@ -61,8 +56,6 @@ private:
     bool wireframe;
     RenderingMode renderingMode;
     Object object;
-    //DisplayMode displayMode;
-    //QImage rayImage;
 };
 
 #endif // GLVIEWER_H

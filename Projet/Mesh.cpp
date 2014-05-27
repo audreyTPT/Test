@@ -11,8 +11,10 @@
 #include <fstream>
 #include <sstream>
 #include <OpenGL/gl.h>
+#include <Eigen/Dense>
 
 using namespace std;
+
 
 void Mesh::clear () {
     clearTopology ();
@@ -21,15 +23,19 @@ void Mesh::clear () {
 
 void Mesh::clearGeometry () {
     vertices.clear ();
+    vertices_bones.clear();
 }
 
 void Mesh::clearTopology () {
     triangles.clear ();
+    bones.clear();
 }
 
 void Mesh::unmarkAllVertices () {
     for (unsigned int i = 0; i < vertices.size (); i++)
         vertices[i].unmark ();
+    for (unsigned int i=0; i< vertices_bones.size(); i++)
+        vertices_bones[i].unmark();
 }
 
 void Mesh::computeTriangleNormals (vector<Vec3Df> & triangleNormals) {
@@ -159,6 +165,8 @@ inline void glDrawPoint (const Vertex & v) {
 }
 
 void Mesh::renderGL (bool flat) const {
+    
+    glColor3f(1.0, 1.0, 1.0);
     glBegin (GL_TRIANGLES);
     for (unsigned int i = 0; i < triangles.size (); i++) {
         const Triangle & t = triangles[i];
@@ -178,6 +186,25 @@ void Mesh::renderGL (bool flat) const {
                 glVertexVec3Df (v[j].getPos ());
     }
     glEnd ();
+    
+    //dessiner le skelette
+    glColor3f(1.0, 0.0, 0.0);
+    glLineWidth(15);
+    glBegin (GL_LINES);
+    for (unsigned int i=0; i< bones.size(); i++){
+        
+        const Bone & b = bones[i];
+        Vertex v[2];
+        for (unsigned int j=0; j<2; j++)
+            v[j] = vertices_bones[b.getVertex(j)];
+        
+        for (unsigned int j=0; j<2; j++){
+            //glDrawPoint (v[j]);
+            glVertexVec3Df (v[j].getPos ());
+        }
+        
+    }
+    glEnd();
 }
 
 void Mesh::loadOFF (const std::string & filename) {
@@ -210,6 +237,89 @@ void Mesh::loadOFF (const std::string & filename) {
     recomputeSmoothVertexNormals (0);
 }
 
+void Mesh::loadOBJ(const std::string &filename) {
+    clear();
+    ifstream input (filename.c_str ());
+    if (!input)
+        throw Exception ("Failing opening the file.");
+
+    if (filename.find("obj") == 0)
+        throw Exception ("Not an OBJ file");
+
+    string word;
+    std::getline(input, word);
+    //permet de savoir si on est dans un objet ou dans un skelette. (si objet -> true)
+    bool obj;
+    
+    while ( word.length() != 0){
+
+        istringstream iss(word);
+        
+        vector<string> line{istream_iterator<string>{iss},
+            istream_iterator<string>{}};
+        
+        //avant de remplir les vertices, on regarde si on a un skelette ou un objet.
+        if (line[0] == "o"){
+            obj = true;
+            std::getline(input, word);
+            line.clear();
+        }else if (line [0] == "s") {
+           obj = false;
+            std::getline(input, word);
+            line.clear();
+            
+        }else if (word.find("#") != std::string::npos){
+            std::getline(input, word);
+            line.clear();
+            
+        }else if ( line[0] == "v"){
+            //je lis une ligne de vertex v
+            //il faut récupérer les 3 positions
+            
+            //si c'est un objet on remplir les vertices du mesh
+            //sinon, on remplit les vertices du skelette
+            if (obj){
+                Vec3Df pos( stof(line[1]) , stof(line[2]), stof(line[3]) );
+                vertices.push_back (Vertex (pos, Vec3Df (1.0, 0.0, 0.0)));
+           }else{
+                Vec3Df pos( stof(line[1]) , stof(line[2]), stof(line[3]) );
+                vertices_bones.push_back( Vertex(pos, Vec3Df (1.0, 0.0, 0.0)) );
+            }
+            
+            std::getline(input, word);
+            
+        }else if( line[0] == "f"){
+            //je lis une ligne de face
+            unsigned int polygonSize = line.size();
+            
+            if (polygonSize == 4){
+                //c'est un triangle
+                //on enlève 1 car dans un .obj, l'index des vertices commencent à 1 et non 0 !
+                triangles.push_back (Triangle (stof(line[1])-1, stof(line[2])-1, stof(line[3])-1));
+            }
+            std::getline(input, word);
+            
+        }else if (line[0] == "l"){
+            // c'est un bone
+            
+            if (line.size() == 3){
+                // c'est une ligne
+                //on enlève 1 car dans un .obj, l'index des vertices commencent à 1 et non 0
+                //on enlève la taille des vertices précédents !
+                bones.push_back(Bone (stof(line[1])-1-vertices.size(), stof(line[2])-1-vertices.size()));
+            }
+            std::getline(input, word);
+        }else{
+            std::getline(input, word);
+        }
+        
+    }
+    
+    input.close();
+    recomputeSmoothVertexNormals (0);    
+    
+}
+
 void Mesh::rotateAroundZ(float angle)
 {
     vector<Vertex> v;
@@ -220,6 +330,14 @@ void Mesh::rotateAroundZ(float angle)
         newV[1] = -sin(angle) * V[0] + cos(angle) * V[1];
         newV[2] = V[2];
         vertices[i].setPos(newV);
+    }
+    for (int i = 0; i < vertices_bones.size(); i++) {
+        Vec3Df newV;
+        Vec3Df V = vertices_bones[i].getPos();
+        newV[0] = cos(angle) * V[0] + sin(angle) * V[1];
+        newV[1] = -sin(angle) * V[0] + cos(angle) * V[1];
+        newV[2] = V[2];
+        vertices_bones[i].setPos(newV);
     }
     recomputeSmoothVertexNormals(0);
 }
@@ -235,6 +353,14 @@ void Mesh::rotateAroundY(float angle)
         newV[2] = -sin(angle) * V[0] + cos(angle) * V[2];
         vertices[i].setPos(newV);
     }
+    for (int i = 0; i < vertices_bones.size(); i++) {
+        Vec3Df newV;
+        Vec3Df V = vertices_bones[i].getPos();
+        newV[0] = cos(angle) * V[0] + sin(angle) * V[2];
+        newV[1] = V[1];
+        newV[2] = -sin(angle) * V[0] + cos(angle) * V[2];
+        vertices_bones[i].setPos(newV);
+    }
     recomputeSmoothVertexNormals(0);
 }
 
@@ -249,5 +375,23 @@ void Mesh::rotateAroundX(float angle)
         newV[2] = -sin(angle) * V[1] + cos(angle) * V[2];
         vertices[i].setPos(newV);
     }
+    for (int i = 0; i < vertices_bones.size(); i++) {
+        Vec3Df newV;
+        Vec3Df V = vertices_bones[i].getPos();
+        newV[0] = V[0];
+        newV[1] = cos(angle) * V[1] + sin(angle) * V[2];
+        newV[2] = -sin(angle) * V[1] + cos(angle) * V[2];
+        vertices_bones[i].setPos(newV);
+    }
     recomputeSmoothVertexNormals(0);
+    
+    cout << "je vais essayer de tester eigen" << endl;
+    Eigen::MatrixXd m(2,2);
+    m(0,0) = 3;
+    m(1,0) = 2.5;
+    m(0,1) = -1;
+    m(1,1) = m(1,0) + m(0,1);
+    std::cout << m << std::endl;
+    
+    
 }

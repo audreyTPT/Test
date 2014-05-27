@@ -14,6 +14,7 @@
 #include "Vertex.h"
 #include "Triangle.h"
 #include "Edge.h"
+#include "Bone.h"
 
 class Mesh {
 public:
@@ -25,7 +26,7 @@ public:
         : vertices (v), triangles (t)  {}
     inline Mesh (const Mesh & mesh) 
         : vertices (mesh.vertices), 
-          triangles (mesh.triangles) {}
+          triangles (mesh.triangles), vertices_bones(mesh.vertices_bones), bones(mesh.bones) {}
         
     inline virtual ~Mesh () {}
     std::vector<Vertex> & getVertices () { return vertices; }
@@ -46,6 +47,7 @@ public:
     void renderGL (bool flat) const;
     
     void loadOFF (const std::string & filename);
+    void loadOBJ (const std::string & filename);
     void rotateAroundX(float angle);
     void rotateAroundY(float angle);
     void rotateAroundZ(float angle);
@@ -62,6 +64,8 @@ public:
 private:
     std::vector<Vertex> vertices;
     std::vector<Triangle> triangles;
+    std::vector<Vertex> vertices_bones;
+    std::vector<Bone> bones;
 };
 
 #endif // MESH_H

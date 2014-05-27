@@ -7,14 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		76701256192F781C003A75E6 /* GLViewer_moc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76701253192F781C003A75E6 /* GLViewer_moc.cpp */; };
+		76701257192F781C003A75E6 /* QUtils_moc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76701254192F781C003A75E6 /* QUtils_moc.cpp */; };
+		76701258192F781C003A75E6 /* Window_moc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76701255192F781C003A75E6 /* Window_moc.cpp */; };
+		76D3EB98193223B4000E1950 /* Bone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76D3EB96193223B4000E1950 /* Bone.cpp */; };
 		76E6009C192A5860003254E0 /* BoundingBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E6009A192A5860003254E0 /* BoundingBox.cpp */; };
 		76E6009E192A587B003254E0 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E6009D192A587B003254E0 /* Main.cpp */; };
-		76E600AF192A58AC003254E0 /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600A1192A58AB003254E0 /* Light.cpp */; };
 		76E600B0192A58AC003254E0 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600A3192A58AC003254E0 /* Material.cpp */; };
 		76E600B1192A58AC003254E0 /* Mesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600A5192A58AC003254E0 /* Mesh.cpp */; };
 		76E600B2192A58AC003254E0 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600A7192A58AC003254E0 /* Object.cpp */; };
-		76E600B3192A58AC003254E0 /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600A9192A58AC003254E0 /* Ray.cpp */; };
-		76E600B4192A58AC003254E0 /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600AB192A58AC003254E0 /* Scene.cpp */; };
 		76E600B5192A58AC003254E0 /* Triangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600AD192A58AC003254E0 /* Triangle.cpp */; };
 		76E600B8192A58C7003254E0 /* Vertex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600B6192A58C7003254E0 /* Vertex.cpp */; };
 		76E600BA192A5957003254E0 /* QtOpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76E600B9192A5957003254E0 /* QtOpenGL.framework */; };
@@ -26,7 +27,6 @@
 		76E600C7192A5A49003254E0 /* GLViewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600C5192A5A49003254E0 /* GLViewer.cpp */; };
 		76E600CA192A5A7A003254E0 /* QTUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600C8192A5A7A003254E0 /* QTUtils.cpp */; };
 		76E600D1192A624C003254E0 /* Window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600CF192A624C003254E0 /* Window.cpp */; };
-		76E600D4192A6276003254E0 /* RayTracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76E600D2192A6276003254E0 /* RayTracer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,6 +42,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		76701253192F781C003A75E6 /* GLViewer_moc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GLViewer_moc.cpp; sourceTree = "<group>"; };
+		76701254192F781C003A75E6 /* QUtils_moc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = QUtils_moc.cpp; sourceTree = "<group>"; };
+		76701255192F781C003A75E6 /* Window_moc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Window_moc.cpp; sourceTree = "<group>"; };
+		76D3EB96193223B4000E1950 /* Bone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Bone.cpp; sourceTree = "<group>"; };
+		76D3EB97193223B4000E1950 /* Bone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bone.h; sourceTree = "<group>"; };
 		76E6008E192A5819003254E0 /* Projet */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Projet; sourceTree = BUILT_PRODUCTS_DIR; };
 		76E60093192A5819003254E0 /* Projet.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Projet.1; sourceTree = "<group>"; };
 		76E6009A192A5860003254E0 /* BoundingBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BoundingBox.cpp; sourceTree = "<group>"; };
@@ -49,18 +54,12 @@
 		76E6009D192A587B003254E0 /* Main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Main.cpp; sourceTree = "<group>"; };
 		76E6009F192A5893003254E0 /* Vec3D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vec3D.h; sourceTree = "<group>"; };
 		76E600A0192A58AB003254E0 /* Edge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Edge.h; sourceTree = "<group>"; };
-		76E600A1192A58AB003254E0 /* Light.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Light.cpp; sourceTree = "<group>"; };
-		76E600A2192A58AB003254E0 /* Light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Light.h; sourceTree = "<group>"; };
 		76E600A3192A58AC003254E0 /* Material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Material.cpp; sourceTree = "<group>"; };
 		76E600A4192A58AC003254E0 /* Material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Material.h; sourceTree = "<group>"; };
 		76E600A5192A58AC003254E0 /* Mesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mesh.cpp; sourceTree = "<group>"; };
 		76E600A6192A58AC003254E0 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mesh.h; sourceTree = "<group>"; };
 		76E600A7192A58AC003254E0 /* Object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Object.cpp; sourceTree = "<group>"; };
 		76E600A8192A58AC003254E0 /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Object.h; sourceTree = "<group>"; };
-		76E600A9192A58AC003254E0 /* Ray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ray.cpp; sourceTree = "<group>"; };
-		76E600AA192A58AC003254E0 /* Ray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ray.h; sourceTree = "<group>"; };
-		76E600AB192A58AC003254E0 /* Scene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Scene.cpp; sourceTree = "<group>"; };
-		76E600AC192A58AC003254E0 /* Scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Scene.h; sourceTree = "<group>"; };
 		76E600AD192A58AC003254E0 /* Triangle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Triangle.cpp; sourceTree = "<group>"; };
 		76E600AE192A58AC003254E0 /* Triangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Triangle.h; sourceTree = "<group>"; };
 		76E600B6192A58C7003254E0 /* Vertex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Vertex.cpp; sourceTree = "<group>"; };
@@ -77,8 +76,6 @@
 		76E600C9192A5A7A003254E0 /* QTUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QTUtils.h; sourceTree = "<group>"; };
 		76E600CF192A624C003254E0 /* Window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Window.cpp; sourceTree = "<group>"; };
 		76E600D0192A624C003254E0 /* Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Window.h; sourceTree = "<group>"; };
-		76E600D2192A6276003254E0 /* RayTracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RayTracer.cpp; sourceTree = "<group>"; };
-		76E600D3192A6276003254E0 /* RayTracer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RayTracer.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,28 +120,25 @@
 				76E600C5192A5A49003254E0 /* GLViewer.cpp */,
 				76E600C6192A5A49003254E0 /* GLViewer.h */,
 				76E600A0192A58AB003254E0 /* Edge.h */,
-				76E600A1192A58AB003254E0 /* Light.cpp */,
-				76E600A2192A58AB003254E0 /* Light.h */,
 				76E600A3192A58AC003254E0 /* Material.cpp */,
 				76E600C8192A5A7A003254E0 /* QTUtils.cpp */,
+				76701253192F781C003A75E6 /* GLViewer_moc.cpp */,
+				76701254192F781C003A75E6 /* QUtils_moc.cpp */,
+				76701255192F781C003A75E6 /* Window_moc.cpp */,
 				76E600C9192A5A7A003254E0 /* QTUtils.h */,
 				76E600A4192A58AC003254E0 /* Material.h */,
 				76E600A5192A58AC003254E0 /* Mesh.cpp */,
 				76E600A6192A58AC003254E0 /* Mesh.h */,
 				76E600A7192A58AC003254E0 /* Object.cpp */,
 				76E600A8192A58AC003254E0 /* Object.h */,
-				76E600D2192A6276003254E0 /* RayTracer.cpp */,
-				76E600D3192A6276003254E0 /* RayTracer.h */,
-				76E600A9192A58AC003254E0 /* Ray.cpp */,
 				76E600B6192A58C7003254E0 /* Vertex.cpp */,
 				76E600B7192A58C7003254E0 /* Vertex.h */,
 				76E600CF192A624C003254E0 /* Window.cpp */,
 				76E600D0192A624C003254E0 /* Window.h */,
-				76E600AA192A58AC003254E0 /* Ray.h */,
-				76E600AB192A58AC003254E0 /* Scene.cpp */,
-				76E600AC192A58AC003254E0 /* Scene.h */,
 				76E600AD192A58AC003254E0 /* Triangle.cpp */,
 				76E600AE192A58AC003254E0 /* Triangle.h */,
+				76D3EB96193223B4000E1950 /* Bone.cpp */,
+				76D3EB97193223B4000E1950 /* Bone.h */,
 				76E6009F192A5893003254E0 /* Vec3D.h */,
 				76E6009D192A587B003254E0 /* Main.cpp */,
 				76E60093192A5819003254E0 /* Projet.1 */,
@@ -218,18 +212,18 @@
 			files = (
 				76E6009C192A5860003254E0 /* BoundingBox.cpp in Sources */,
 				76E6009E192A587B003254E0 /* Main.cpp in Sources */,
-				76E600AF192A58AC003254E0 /* Light.cpp in Sources */,
 				76E600B0192A58AC003254E0 /* Material.cpp in Sources */,
 				76E600B1192A58AC003254E0 /* Mesh.cpp in Sources */,
 				76E600B2192A58AC003254E0 /* Object.cpp in Sources */,
-				76E600B3192A58AC003254E0 /* Ray.cpp in Sources */,
-				76E600B4192A58AC003254E0 /* Scene.cpp in Sources */,
 				76E600B5192A58AC003254E0 /* Triangle.cpp in Sources */,
 				76E600B8192A58C7003254E0 /* Vertex.cpp in Sources */,
 				76E600C7192A5A49003254E0 /* GLViewer.cpp in Sources */,
 				76E600CA192A5A7A003254E0 /* QTUtils.cpp in Sources */,
 				76E600D1192A624C003254E0 /* Window.cpp in Sources */,
-				76E600D4192A6276003254E0 /* RayTracer.cpp in Sources */,
+				76701256192F781C003A75E6 /* GLViewer_moc.cpp in Sources */,
+				76701257192F781C003A75E6 /* QUtils_moc.cpp in Sources */,
+				76701258192F781C003A75E6 /* Window_moc.cpp in Sources */,
+				76D3EB98193223B4000E1950 /* Bone.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,6 +310,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"/usr/local/lib/**",
+					/usr/local/lib/Eigen,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = "";
@@ -343,6 +338,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"/usr/local/lib/**",
+					/usr/local/lib/Eigen,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = "";
