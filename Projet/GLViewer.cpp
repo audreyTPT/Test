@@ -23,7 +23,6 @@ GLViewer::GLViewer () : QGLViewer () {
     Mesh ramMesh;
     ramMesh.loadOBJ ("models/skeltry.obj");
     ramMesh.rotateAroundX(M_PI/2);
-    //Material ramMat (1.f, 1.f, Vec3Df (1.f, .6f, .2f));
     object  = Object(ramMesh);
 
 }
@@ -112,24 +111,6 @@ void GLViewer::draw () {
     const Vec3Df & trans = object.getTrans();
     glPushMatrix();
     glTranslatef(trans[0], trans[1], trans[2]);
-    /*const Vec3Df & color = object.getMaterial().getColor();
-    float dif = object.getMaterial().getDiffuse();
-    float spec = object.getMaterial().getSpecular();
-    static GLfloat glMatDiff[4];
-    static GLfloat glMatSpec[4];
-    static const GLfloat glMatAmb[4] = {0.f, 0.f, 0.f, 1.f};
-    for (unsigned int j = 0; j < 3; j++) {
-        glMatDiff[j] = dif*color[j];
-        glMatSpec[j] = spec;
-    }
-    glMatDiff[3] = 1.0f;
-    glMatSpec[3] = 1.0f;
-    */
-    //glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, glMatDiff);
-    //glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, glMatSpec);
-    //glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, glMatAmb);
-    //glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 128);
-    //glDisable (GL_COLOR_MATERIAL);
     object.getMesh().renderGL(renderingMode == Flat);
     glPopMatrix();
     

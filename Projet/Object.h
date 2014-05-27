@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "Mesh.h"
-#include "Material.h"
 #include "BoundingBox.h"
 
 class Object {
@@ -28,16 +27,12 @@ public:
 
     inline const Mesh & getMesh () const { return mesh; }
     inline Mesh & getMesh () { return mesh; }
-    
-    //inline const Material & getMaterial () const { return mat; }
-    //inline Material & getMaterial () { return mat; }
 
     inline const BoundingBox & getBoundingBox () const { return bbox; }
     void updateBoundingBox ();
     
 private:
     Mesh mesh;
-    //Material mat;
     BoundingBox bbox;
     Vec3Df trans;
 };
