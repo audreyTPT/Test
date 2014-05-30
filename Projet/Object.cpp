@@ -19,3 +19,11 @@ void Object::updateBoundingBox () {
             bbox.extendTo (V[i].getPos ());
     }
 }
+
+void Object::getBonesSelected(const std::vector<BoundingBox> &boxes){
+    
+    for (unsigned int i =0 ; i < mesh.getBones().size() ; i++){
+        //il faut vérifier pour chaque bone si il est intersecté par la position de la souris
+    }
+    
+}

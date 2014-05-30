@@ -7,6 +7,7 @@
 // *********************************************************
 
 #include "GLViewer.h"
+#include "GLUT/glut.h"
 
 #include <iostream>
 #include <cstdlib>
@@ -18,11 +19,13 @@ using namespace std;
 
 GLViewer::GLViewer () : QGLViewer () {
     wireframe = false;
+    //mode_selected = false;
     renderingMode = Smooth;
+    selectionMode = Standard;
     
     Mesh ramMesh;
-    ramMesh.loadOBJ ("models/skeltry.obj");
-    ramMesh.rotateAroundX(M_PI/2);
+    ramMesh.loadOBJ ("models/skelgros.obj");
+    //ramMesh.rotateAroundX(M_PI/2);
     object  = Object(ramMesh);
 
 }
@@ -42,6 +45,11 @@ void GLViewer::setWireframe (bool b) {
 void GLViewer::setRenderingMode (RenderingMode m) {
     renderingMode = m;
     updateGL ();
+}
+
+void GLViewer::setSelectionMode(SelectionMode m){
+    selectionMode = m;
+    updateGL();
 }
 
 QString GLViewer::helpString() const {
@@ -67,7 +75,12 @@ QString GLViewer::helpString() const {
 }
 
 void GLViewer::keyPressEvent (QKeyEvent * /*event*/) {
-    
+
+    /*if (event->key() == Qt::Key_S){
+        cout << "je suis en mode selection" << endl;
+        mode_selected = !mode_selected;
+    }*/
+
 }
 
 void GLViewer::keyReleaseEvent (QKeyEvent * /*event*/) {
@@ -75,7 +88,21 @@ void GLViewer::keyReleaseEvent (QKeyEvent * /*event*/) {
 }
 
 void GLViewer::mousePressEvent (QMouseEvent * event) {
-    QGLViewer::mousePressEvent(event);
+    /*if (mode_selected){
+        cout << "je ne sais pas encore quoi faire" << endl;
+        // créer une fonction dans object qui renvoie le bone qui a été sélectionné
+        selection(event->pos().x(),event->pos().y());
+        
+    }else{
+        QGLViewer::mousePressEvent(event);
+    }*/
+    
+    if (selectionMode == Standard){
+        QGLViewer::mousePressEvent(event);
+    }else{
+        selection(event->pos().x(), event->pos().y());
+    }
+    
 }
 
 
@@ -107,15 +134,69 @@ void GLViewer::init() {
 
 void GLViewer::draw () {
     
-    
     const Vec3Df & trans = object.getTrans();
     glPushMatrix();
     glTranslatef(trans[0], trans[1], trans[2]);
     object.getMesh().renderGL(renderingMode == Flat);
     glPopMatrix();
+
+}
+
+void GLViewer::selection(int x, int y){
+    
+    GLuint buff[64] = {0};
+    GLint hits, view[4];
+    int id;
+    //int dy = glutGet(GLUT_WINDOW_HEIGHT);
+    
+    //the buffer where store the info of the selected object
+    glSelectBuffer(64, buff);
+    glGetIntegerv(GL_VIEWPORT, view);
+    //switching into selection mode and initialize the stack name
+    glRenderMode(GL_SELECT);
+    glInitNames();
+    glPushName(0);
+    
+    //modify the viewing volume (only focusing on the mouse click)
+    glMatrixMode(GL_PROJECTION);
+ 	glPushMatrix();
+    glLoadIdentity();
+    gluPickMatrix(x, y, 1.0, 1.0, view);
+    gluPerspective(60, 1.0, 0.0001, 1000.0);
+    glMatrixMode(GL_MODELVIEW);
+    const Vec3Df & trans = object.getTrans();
+    glTranslatef(trans[0], trans[1], trans[2]);
+    object.getMesh().renderGL(renderingMode == Flat);
+    glMatrixMode(GL_PROJECTION);
+ 	glPopMatrix();
+    
+    hits = glRenderMode(GL_RENDER);
+    list_hits(hits, buff);
     
     
 }
 
+void GLViewer::list_hits(GLint hits, GLuint *names)
+{
+ 	int i;
+    
+ 	/*
+     For each hit in the buffer are allocated 4 bytes:
+     1. Number of hits selected (always one,
+     beacuse when we draw each object
+     we use glLoadName, so we replace the
+     prevous name in the stack)
+     2. Min Z
+     3. Max Z
+     4. Name of the hit (glLoadName)
+     */
+    if (hits == 0){
+        cout << "pas d''objet selectionne " << endl;
 
+    }else{
+        for (i = 0; i < hits; i++)
+            printf(	"Name on stack: %d\n",(GLubyte)names[i * 4 + 3]);
+
+    }
+}
 

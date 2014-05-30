@@ -167,6 +167,7 @@ inline void glDrawPoint (const Vertex & v) {
 void Mesh::renderGL (bool flat) const {
     
     glColor3f(1.0, 1.0, 1.0);
+    glLoadName(7);
     glBegin (GL_TRIANGLES);
     for (unsigned int i = 0; i < triangles.size (); i++) {
         const Triangle & t = triangles[i];
@@ -189,8 +190,34 @@ void Mesh::renderGL (bool flat) const {
     
     //dessiner le skelette
     glColor3f(1.0, 0.0, 0.0);
-    glLineWidth(15);
-    glBegin (GL_LINES);
+    //glLineWidth(10);
+    glLoadName(3);
+    glBegin(GL_TRIANGLES);
+    
+    for (unsigned int i =0; i< bones.size() ; i++){
+        
+        const Bone & b = bones [i];
+        vector<Vec3Df> vert;
+        vector<Triangle> tri;
+        
+        const Vec3Df v0 = vertices_bones[b.getVertex(0)].getPos();
+        const Vec3Df v1 = vertices_bones[b.getVertex(1)].getPos();
+        
+        makeCube(v0, v1, vert, tri);
+        //appeler une fonction makeCube qui à partir d'un 2 vec3Df créer un cube centrée sur cette ligne
+        
+        for (unsigned int j=0; j< tri.size(); j++){
+            const Triangle & t = tri[j];
+            Vec3Df v[3];
+            for (unsigned int k = 0; k < 3; k++)
+                v[k] = vert[t.getVertex(k)];
+            for (unsigned int k = 0; k < 3; k++)
+                glVertexVec3Df(v[k]);
+        }
+        
+    }
+    glEnd();
+    /*glBegin (GL_LINES);
     for (unsigned int i=0; i< bones.size(); i++){
         
         const Bone & b = bones[i];
@@ -199,12 +226,11 @@ void Mesh::renderGL (bool flat) const {
             v[j] = vertices_bones[b.getVertex(j)];
         
         for (unsigned int j=0; j<2; j++){
-            //glDrawPoint (v[j]);
             glVertexVec3Df (v[j].getPos ());
         }
         
     }
-    glEnd();
+    glEnd();*/
 }
 
 void Mesh::loadOFF (const std::string & filename) {
@@ -306,7 +332,11 @@ void Mesh::loadOBJ(const std::string &filename) {
                 // c'est une ligne
                 //on enlève 1 car dans un .obj, l'index des vertices commencent à 1 et non 0
                 //on enlève la taille des vertices précédents !
-                bones.push_back(Bone (stof(line[1])-1-vertices.size(), stof(line[2])-1-vertices.size()));
+                unsigned int index1 = stof(line[1])-1-vertices.size();
+                unsigned int index2 = stof(line[2])-1-vertices.size();
+                Bone bone = Bone(index1, index2);
+                bone.buildBox(vertices_bones[index1], vertices_bones[index2]);
+                bones.push_back(bone);
             }
             std::getline(input, word);
         }else{
@@ -393,5 +423,58 @@ void Mesh::rotateAroundX(float angle)
     m(1,1) = m(1,0) + m(0,1);
     std::cout << m << std::endl;
     
+}
+
+void Mesh::makeCube(const Vec3Df & v0, const Vec3Df & v1, vector<Vec3Df> & vert, vector<Triangle> & tri) const{
     
+    float width = 30;
+    //vecteurs x, y, z qui vont donner l'orientation
+    Vec3Df x;
+    if (v0[0] < v1[0]){
+        x = v1-v0;
+        width = v1[0] - v0[0];
+    }else{
+        x = v0 - v1;
+        width = v0[0] - v1[0];
+    }
+    Vec3Df y,z;
+    x.getTwoOrthogonals(y, z);
+    
+    //vertices
+    //front face
+    vert.push_back(v0 + width*z - width*y);
+    vert.push_back(v0 + width*z + width*y);
+    vert.push_back(v1 + width*z + width*y);
+    vert.push_back(v1 + width*z - width*y);
+    
+    //back face
+    vert.push_back(v0 - width*z - width*y);
+    vert.push_back(v0 - width*z + width*y);
+    vert.push_back(v1 - width*z + width*y);
+    vert.push_back(v1 - width*z - width*y);
+    
+    //triangles
+    //font face
+    tri.push_back(Triangle(2, 1, 0));
+    tri.push_back(Triangle(3,2,0));
+    
+    //back face
+    tri.push_back(Triangle(4, 5, 6));
+    tri.push_back(Triangle(4,6,7));
+    
+    //right face
+    tri.push_back(Triangle(7,6,2));
+    tri.push_back(Triangle(7,2,3));
+    
+    //left face
+    tri.push_back(Triangle(0,1,4));
+    tri.push_back(Triangle(1,5,4));
+    
+    //top face
+    tri.push_back(Triangle(1,2,5));
+    tri.push_back(Triangle(6,5,2));
+    
+    //bottom face
+    tri.push_back(Triangle(3,4,0));
+    tri.push_back(Triangle(7,4,3));
 }

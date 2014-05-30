@@ -30,6 +30,7 @@ public:
 
     inline const BoundingBox & getBoundingBox () const { return bbox; }
     void updateBoundingBox ();
+    void getBonesSelected(const std::vector<BoundingBox> & boxes);
     
 private:
     Mesh mesh;

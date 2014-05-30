@@ -33,6 +33,9 @@ public:
     const std::vector<Vertex> & getVertices () const { return vertices; }
     std::vector<Triangle> & getTriangles () { return triangles; }
     const std::vector<Triangle> & getTriangles () const { return triangles; }
+    std::vector<Bone> & getBones() { return bones; }
+    const std::vector<Bone> & getBones() const { return bones; }
+    
     void clear ();
     void clearGeometry ();
     void clearTopology ();
@@ -45,6 +48,8 @@ public:
     void markBorderEdges (EdgeMapIndex & edgeMap);
     
     void renderGL (bool flat) const;
+    void makeCube (const Vec3Df & v0, const Vec3Df & v1, std::vector<Vec3Df> & vert, std::vector<Triangle> & tri) const;
+
     
     void loadOFF (const std::string & filename);
     void loadOBJ (const std::string & filename);

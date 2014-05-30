@@ -11,6 +11,7 @@
 
 #include <OpenGL/gl.h>
 #include <QGLViewer/qglviewer.h>
+#include <QtGui/QKeyEvent>
 #include <vector>
 #include <string>
 
@@ -21,6 +22,7 @@ class GLViewer : public QGLViewer  {
 public:
     
     typedef enum {Flat=0, Smooth=1} RenderingMode;
+    typedef enum {Standard=0, Select=1} SelectionMode;
     
     GLViewer ();
     virtual ~GLViewer ();
@@ -41,11 +43,15 @@ public slots :
     void setWireframe (bool b);
     void setRenderingMode (RenderingMode m);
     void setRenderingMode (int m) { setRenderingMode (static_cast<RenderingMode>(m)); }
+    void setSelectionMode (SelectionMode m);
+    void setSelectionMode (int m) { setSelectionMode (static_cast<SelectionMode> (m)); }
     
 protected :
     void init();
     void draw ();
     QString helpString() const;
+    void selection(int x, int y);
+    void list_hits(GLint hits, GLuint *names);
 
     virtual void keyPressEvent (QKeyEvent * event);
     virtual void keyReleaseEvent (QKeyEvent * event);
@@ -54,6 +60,8 @@ protected :
 
 private:
     bool wireframe;
+    //bool mode_selected;
+    SelectionMode selectionMode;
     RenderingMode renderingMode;
     Object object;
 };

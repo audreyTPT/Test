@@ -34,8 +34,6 @@
 #include <QFileDialog>
 #include <QStatusBar>
 
-//#include "RayTracer.h"
-
 using namespace std;
 
 
@@ -56,6 +54,7 @@ Window::Window () : QMainWindow (NULL) {
     addDockWidget (Qt::RightDockWidgetArea, controlDockWidget);
     controlDockWidget->setFeatures (QDockWidget::AllDockWidgetFeatures);
     statusBar()->showMessage("");
+    cout << viewer->size().width() << endl;
 }
 
 Window::~Window () {
@@ -111,6 +110,16 @@ void Window::initControlWidget () {
     
     QGroupBox * globalGroupBox = new QGroupBox ("Global Settings", controlWidget);
     QVBoxLayout * globalLayout = new QVBoxLayout (globalGroupBox);
+    
+    QButtonGroup * modeGroup = new QButtonGroup (globalGroupBox);
+    modeGroup->setExclusive (true);
+    QRadioButton * selectMode = new QRadioButton ("Selection mode", globalGroupBox);
+    QRadioButton * standardMode = new QRadioButton ("Standard mode", globalGroupBox);
+    modeGroup->addButton(selectMode, static_cast<int>(GLViewer::Select));
+    modeGroup->addButton(standardMode, static_cast<int>(GLViewer::Standard));
+    connect(modeGroup, SIGNAL(buttonClicked(int)), viewer, SLOT(setSelectionMode(int)));
+    globalLayout->addWidget(selectMode);
+    globalLayout->addWidget(standardMode);
     
     QPushButton * bgColorButton  = new QPushButton ("Background Color", globalGroupBox);
     connect (bgColorButton, SIGNAL (clicked()) , this, SLOT (setBGColor()));

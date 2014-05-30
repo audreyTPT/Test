@@ -22,7 +22,7 @@ static const uint qt_meta_data_GLViewer[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       3,   14, // methods
+       5,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -33,6 +33,8 @@ static const uint qt_meta_data_GLViewer[] = {
        9,   28,   30,   30, 0x0a,
       31,   63,   30,   30, 0x0a,
       65,   63,   30,   30, 0x0a,
+      87,   63,   30,   30, 0x0a,
+     119,   63,   30,   30, 0x0a,
 
        0        // eod
 };
@@ -41,6 +43,8 @@ static const char qt_meta_stringdata_GLViewer[] = {
     "GLViewer\0setWireframe(bool)\0b\0\0"
     "setRenderingMode(RenderingMode)\0m\0"
     "setRenderingMode(int)\0"
+    "setSelectionMode(SelectionMode)\0"
+    "setSelectionMode(int)\0"
 };
 
 void GLViewer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -52,6 +56,8 @@ void GLViewer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, vo
         case 0: _t->setWireframe((*reinterpret_cast< bool(*)>(_a[1]))); break;
         case 1: _t->setRenderingMode((*reinterpret_cast< RenderingMode(*)>(_a[1]))); break;
         case 2: _t->setRenderingMode((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 3: _t->setSelectionMode((*reinterpret_cast< SelectionMode(*)>(_a[1]))); break;
+        case 4: _t->setSelectionMode((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -89,9 +95,9 @@ int GLViewer::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 3)
+        if (_id < 5)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 3;
+        _id -= 5;
     }
     return _id;
 }
