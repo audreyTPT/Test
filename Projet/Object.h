@@ -13,6 +13,7 @@
 
 #include "Mesh.h"
 #include "BoundingBox.h"
+#include "Ray.h"
 
 class Object {
 public:
@@ -30,7 +31,7 @@ public:
 
     inline const BoundingBox & getBoundingBox () const { return bbox; }
     void updateBoundingBox ();
-    void getBonesSelected(const std::vector<BoundingBox> & boxes);
+    bool getBoneSelected(const Ray &ray , Bone & bone, Vec3Df & intersectionPoint);
     
 private:
     Mesh mesh;

@@ -20,10 +20,21 @@ void Object::updateBoundingBox () {
     }
 }
 
-void Object::getBonesSelected(const std::vector<BoundingBox> &boxes){
+bool Object::getBoneSelected(const Ray & ray, Bone & bone, Vec3Df & intersectionPoint){
+    
     
     for (unsigned int i =0 ; i < mesh.getBones().size() ; i++){
-        //il faut vérifier pour chaque bone si il est intersecté par la position de la souris
+        //il faut vérifier pour chaque bone si il est intersecté par le rayon vers la souris
+        bool intersection = false;
+        BoundingBox box = mesh.getBones()[i].getBoundingBox();
+        intersection = ray.intersect( box, intersectionPoint );
+        
+        if (intersection){
+            bone = mesh.getBones()[i];
+            return true;
+        }
     }
+    
+    return false;
     
 }

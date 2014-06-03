@@ -8,6 +8,7 @@
 
 #include "GLViewer.h"
 #include "GLUT/glut.h"
+#include "QtGui/QMenu"
 
 #include <iostream>
 #include <cstdlib>
@@ -20,6 +21,7 @@ using namespace std;
 GLViewer::GLViewer () : QGLViewer () {
     wireframe = false;
     //mode_selected = false;
+    bone_selected = false;
     renderingMode = Smooth;
     selectionMode = Standard;
     
@@ -88,6 +90,7 @@ void GLViewer::keyReleaseEvent (QKeyEvent * /*event*/) {
 }
 
 void GLViewer::mousePressEvent (QMouseEvent * event) {
+    
     /*if (mode_selected){
         cout << "je ne sais pas encore quoi faire" << endl;
         // créer une fonction dans object qui renvoie le bone qui a été sélectionné
@@ -99,13 +102,107 @@ void GLViewer::mousePressEvent (QMouseEvent * event) {
     
     if (selectionMode == Standard){
         QGLViewer::mousePressEvent(event);
+        
     }else{
-        selection(event->pos().x(), event->pos().y());
+        
+        if (event->button() == Qt::LeftButton){
+            //on sélectionne le Bone cliqué si il existe un bone autour
+            
+            //on repère la position de la souris et lance un rayon
+            qglviewer::Vec orig, dir;
+            camera()->convertClickToLine(event->pos(), orig, dir);
+            origin = Vec3Df(orig[0], orig[1], orig[2]);
+            direction = Vec3Df(dir[0], dir[1], dir[2]);
+            Ray ray = Ray(origin, direction);
+            Bone bone;
+            Vec3Df intersectionPoint;
+            
+            //on appelle une fonction pour trouver le bone d'intersection avec la BoundingBox
+            bool intersection = object.getBoneSelected(ray, bone, intersectionPoint);
+            
+            if(intersection){
+                //on a trouvé un bone intersecté, alors on le stock
+                //il faudrait marqué dans le menu, ou afficher que l'on a sélectionné un bone ou sinon l'encadrer en orange par exemple (cf blender)
+                cout << "BONE !!! " << endl;
+                bone_selected = true;
+                mouse_x = event->pos().x();
+                mouse_y = event->pos().y();
+                
+                //coloration orange du bone à faire, créer une fonction dans mesh.cpp
+                
+            }else{
+                cout << "je n'ai rien touché" << endl;
+                bone_selected = false;
+            }
+            
+        }
     }
     
 }
 
+void GLViewer::mouseMoveEvent(QMouseEvent *event){
+    
+    if (selectionMode == Standard){
+        QGLViewer::mouseMoveEvent(event);
+    }else{
+        
+        if (bone_selected){
+            //on va commencer à déplacer le bone, on prend le plan dans lequel se trouve le bone
+            //on définit le plan : le point d'intersection du bone et le vecteur normal qui est celui de la caméra !
+            //cout << "je suis dans le move" << endl;
+            
+            //la translation selon x et y vaut :
+            float dx = -(event->pos().x() - mouse_x);
+            float dy = -(event->pos().y() - mouse_y);
+            
+            dy /= camera()->screenHeight()*0.2;
+            dx /= camera()->screenWidth()*0.2;
+            
+            //on réactualise les valeurs de mouse_x, mouse_y
+            mouse_x = event->pos().x();
+            mouse_y = event->pos().y();
+            
+            //on déplace de dx et dy dans le plan les deux vertex du bones !
+            //on définit le plan
+            Ray ray = Ray(origin, direction);
+            Bone bone;
+            Vec3Df intersectionPoint;
+            object.getBoneSelected(ray, bone, intersectionPoint);
+            
+            Vec3Df x, y;
+            direction.getTwoOrthogonals(y, x);
+            
+            object.getMesh().modifyMesh(bone, x*dx, y*dy);
+            
+            //ancienne méthode
+            //std::vector<Vertex> bones_vertices = object.getMesh().getBonesVertices();
+            //Vertex vert0 = bones_vertices[bone.getVertex(0)];
+            //Vertex vert1 = bones_vertices[bone.getVertex(1)];
+            
+            //dx = dy = 0.1;
+            /*Vertex new0 = Vertex(vert0.getPos() + dx*x + dy*y);
+            Vertex new1 = Vertex( vert1.getPos() + dx*x + dy*y);
+            
+            object.getMesh().setVertices(bone.getVertex(0), new0);
+            object.getMesh().setVertices(bone.getVertex(1), new1);*/
+            
+        }
+    }
+    
+}
 
+void GLViewer::mouseReleaseEvent(QMouseEvent *event){
+    
+    //quand on relache le bouton de gauche, on ne sélectionne plus le bone si on est en mode select
+    if (selectionMode == Select){
+        
+        if ( event->button() == Qt::LeftButton){
+            bone_selected = false;
+            updateGL();
+        }
+    }
+    
+}
 void GLViewer::wheelEvent (QWheelEvent * e) {
     QGLViewer::wheelEvent (e);
 }
@@ -130,6 +227,7 @@ void GLViewer::init() {
     setSceneCenter (qglviewer::Vec (c[0], c[1], c[2]));
     setSceneRadius (r);
     showEntireScene ();
+    
 }
 
 void GLViewer::draw () {
@@ -148,6 +246,7 @@ void GLViewer::selection(int x, int y){
     GLint hits, view[4];
     int id;
     //int dy = glutGet(GLUT_WINDOW_HEIGHT);
+    int dy = camera()->screenHeight();
     
     //the buffer where store the info of the selected object
     glSelectBuffer(64, buff);
@@ -161,7 +260,7 @@ void GLViewer::selection(int x, int y){
     glMatrixMode(GL_PROJECTION);
  	glPushMatrix();
     glLoadIdentity();
-    gluPickMatrix(x, y, 1.0, 1.0, view);
+    gluPickMatrix(x, dy - y, 1.0, 1.0, view);
     gluPerspective(60, 1.0, 0.0001, 1000.0);
     glMatrixMode(GL_MODELVIEW);
     const Vec3Df & trans = object.getTrans();

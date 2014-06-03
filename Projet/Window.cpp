@@ -118,8 +118,8 @@ void Window::initControlWidget () {
     modeGroup->addButton(selectMode, static_cast<int>(GLViewer::Select));
     modeGroup->addButton(standardMode, static_cast<int>(GLViewer::Standard));
     connect(modeGroup, SIGNAL(buttonClicked(int)), viewer, SLOT(setSelectionMode(int)));
-    globalLayout->addWidget(selectMode);
     globalLayout->addWidget(standardMode);
+    globalLayout->addWidget(selectMode);
     
     QPushButton * bgColorButton  = new QPushButton ("Background Color", globalGroupBox);
     connect (bgColorButton, SIGNAL (clicked()) , this, SLOT (setBGColor()));

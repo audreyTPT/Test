@@ -56,6 +56,8 @@ protected :
     virtual void keyPressEvent (QKeyEvent * event);
     virtual void keyReleaseEvent (QKeyEvent * event);
     virtual void mousePressEvent (QMouseEvent * event);
+    virtual void mouseMoveEvent (QMouseEvent * event);
+    virtual void mouseReleaseEvent (QMouseEvent * event);
     virtual void wheelEvent (QWheelEvent * e);
 
 private:
@@ -63,6 +65,9 @@ private:
     //bool mode_selected;
     SelectionMode selectionMode;
     RenderingMode renderingMode;
+    bool bone_selected;
+    Vec3Df origin, direction; //origin et direction de la caméra vers le point sélectionné
+    float mouse_x, mouse_y;
     Object object;
 };
 

@@ -190,9 +190,10 @@ void Mesh::renderGL (bool flat) const {
     
     //dessiner le skelette
     glColor3f(1.0, 0.0, 0.0);
-    //glLineWidth(10);
+    //glLineWidth(2);
     glLoadName(3);
-    glBegin(GL_TRIANGLES);
+    
+    /*glBegin(GL_TRIANGLES);
     
     for (unsigned int i =0; i< bones.size() ; i++){
         
@@ -216,8 +217,9 @@ void Mesh::renderGL (bool flat) const {
         }
         
     }
-    glEnd();
-    /*glBegin (GL_LINES);
+    glEnd();*/
+    
+    glBegin (GL_LINES);
     for (unsigned int i=0; i< bones.size(); i++){
         
         const Bone & b = bones[i];
@@ -230,7 +232,7 @@ void Mesh::renderGL (bool flat) const {
         }
         
     }
-    glEnd();*/
+    glEnd();
 }
 
 void Mesh::loadOFF (const std::string & filename) {
@@ -346,7 +348,7 @@ void Mesh::loadOBJ(const std::string &filename) {
     }
     
     input.close();
-    recomputeSmoothVertexNormals (0);    
+    recomputeSmoothVertexNormals (0);
     
 }
 
@@ -427,7 +429,7 @@ void Mesh::rotateAroundX(float angle)
 
 void Mesh::makeCube(const Vec3Df & v0, const Vec3Df & v1, vector<Vec3Df> & vert, vector<Triangle> & tri) const{
     
-    float width = 30;
+    float width;// = 30;
     //vecteurs x, y, z qui vont donner l'orientation
     Vec3Df x;
     if (v0[0] < v1[0]){
@@ -477,4 +479,22 @@ void Mesh::makeCube(const Vec3Df & v0, const Vec3Df & v1, vector<Vec3Df> & vert,
     //bottom face
     tri.push_back(Triangle(3,4,0));
     tri.push_back(Triangle(7,4,3));
+}
+
+void Mesh::modifyMesh(const Bone & bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement){
+    
+    // modification de la position du bone
+    Vertex vert0 = vertices_bones[bone.getVertex(0)];
+    Vertex vert1 = vertices_bones[bone.getVertex(1)];
+    
+    Vertex new0 = Vertex(vert0.getPos() + x_displacement + y_displacement);
+    Vertex new1 = Vertex( vert1.getPos() + x_displacement + y_displacement);
+
+    setVertices(bone.getVertex(0), new0);
+    setVertices(bone.getVertex(1), new1);
+    
+    // modification du mesh
+    
+    //calcul du poids des différents bones
+    
 }

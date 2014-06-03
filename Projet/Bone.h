@@ -26,6 +26,7 @@ public:
     inline unsigned int getVertex (unsigned int i) const { return v[i]; }
     inline void setVertex (unsigned int i, unsigned int vertex) { v[i] = vertex; }
     inline bool contains (unsigned int vertex) const { return (v[0] == vertex || v[1] == vertex) ; }
+    inline BoundingBox getBoundingBox() const { return box; }
     
     void buildBox(Vertex v0, Vertex v1);
     
