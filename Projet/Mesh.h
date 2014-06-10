@@ -10,6 +10,8 @@
 
 #include <vector>
 #include <string>
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #include "Vertex.h"
 #include "Triangle.h"
@@ -37,7 +39,8 @@ public:
     const std::vector<Bone> & getBones() const { return bones; }
     std::vector<Vertex> & getBonesVertices() { return vertices_bones; }
     const std::vector<Vertex> & getBonesVertices() const { return vertices_bones; }
-    void setVertices(unsigned int i, Vertex vert) { vertices_bones[i] = vert; }
+    void setBoneVertices(unsigned int i, Vertex vert) { vertices_bones[i] = vert; }
+    void setMeshVertices(unsigned int i, Vertex vert) { vertices[i] = vert; }
     
     void clear ();
     void clearGeometry ();
@@ -52,7 +55,9 @@ public:
     
     void renderGL (bool flat) const;
     void makeCube (const Vec3Df & v0, const Vec3Df & v1, std::vector<Vec3Df> & vert, std::vector<Triangle> & tri) const;
-    void modifyMesh(const Bone & bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement);
+    void modifyMesh(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement);
+    void modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement);
+    void computeWeights(std::vector < Eigen::VectorXf> & w);
     
     void loadOFF (const std::string & filename);
     void loadOBJ (const std::string & filename);

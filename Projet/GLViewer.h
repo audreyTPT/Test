@@ -67,7 +67,7 @@ private:
     RenderingMode renderingMode;
     bool bone_selected;
     Vec3Df origin, direction; //origin et direction de la caméra vers le point sélectionné
-    float mouse_x, mouse_y;
+    float mouse_x, mouse_y, mouse_interm_x, mouse_interm_y;
     Object object;
 };
 

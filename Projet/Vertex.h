@@ -17,20 +17,21 @@ class Vertex {
 public:
     inline Vertex () 
         : pos (Vec3Df (0.0,0.0,0.0)), normal (Vec3Df (0.0, 0.0, 1.0)), 
-          marked (false), id (-1) {}
+          marked (false), id (-1), bone(-1) {}
     inline Vertex (const Vec3Df & pos) 
         : pos (pos), normal (Vec3Df (0.0, 0.0, 1.0)), 
-          marked (false), id (-1) {}
+          marked (false), id (-1), bone(-1) {}
     inline Vertex (const Vec3Df & pos, const Vec3Df & normal) 
         : pos (pos), normal (normal), 
-          marked (false), id (-1) {}
+          marked (false), id (-1), bone(-1) {}
     inline Vertex (const Vertex & v) : pos (v.pos), normal (v.normal), 
-                                       marked (v.marked), id (-1) {}
+                                       marked (v.marked), id (-1), bone(v.bone) {}
     inline virtual ~Vertex () {}
     inline Vertex & operator= (const Vertex & vertex) {
         pos = vertex.pos;
         normal = vertex.normal;
         marked = vertex.marked;
+        bone = vertex.bone;
         id = -1;
         return (*this);
     }
@@ -45,6 +46,10 @@ public:
     inline void setId (int newId) { id = newId; } 
     inline bool operator== (const Vertex & v) { return (v.pos == pos && v.normal == normal); }
     void interpolate (const Vertex & u, const Vertex & v, float alpha = 0.5);
+    inline const int getBone() const { return bone; }
+    inline void setBone(int newBone) { bone = newBone; }
+    //inline void setLaplacian (Vec3Df newLaplacian) { laplacian = newLaplacian; }
+    //inline const Vec3Df getLaplacian() const { return laplacian; }
 
     static void computeAveragePosAndRadius (std::vector<Vertex> & vertices, 
                                             Vec3Df & center, float & radius);
@@ -57,6 +62,8 @@ private:
     Vec3Df normal;
     bool marked;
     int id;
+    //Vec3Df laplacian;
+    int bone;
 };
 
 extern std::ostream & operator<< (std::ostream & output, const Vertex & v);

@@ -31,7 +31,7 @@ public:
 
     inline const BoundingBox & getBoundingBox () const { return bbox; }
     void updateBoundingBox ();
-    bool getBoneSelected(const Ray &ray , Bone & bone, Vec3Df & intersectionPoint);
+    bool getBoneSelected(const Ray &ray , int & idx_bone, Vec3Df & intersectionPoint);
     
 private:
     Mesh mesh;

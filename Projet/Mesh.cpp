@@ -11,10 +11,14 @@
 #include <fstream>
 #include <sstream>
 #include <OpenGL/gl.h>
-#include <Eigen/Dense>
+
 
 using namespace std;
 
+static inline float cotan(float i)
+{
+    return 1/tan(i);
+}
 
 void Mesh::clear () {
     clearTopology ();
@@ -190,7 +194,7 @@ void Mesh::renderGL (bool flat) const {
     
     //dessiner le skelette
     glColor3f(1.0, 0.0, 0.0);
-    //glLineWidth(2);
+    glLineWidth(2);
     glLoadName(3);
     
     /*glBegin(GL_TRIANGLES);
@@ -417,13 +421,13 @@ void Mesh::rotateAroundX(float angle)
     }
     recomputeSmoothVertexNormals(0);
     
-    cout << "je vais essayer de tester eigen" << endl;
+    /*cout << "je vais essayer de tester eigen" << endl;
     Eigen::MatrixXd m(2,2);
     m(0,0) = 3;
     m(1,0) = 2.5;
     m(0,1) = -1;
     m(1,1) = m(1,0) + m(0,1);
-    std::cout << m << std::endl;
+    std::cout << m << std::endl;*/
     
 }
 
@@ -481,20 +485,224 @@ void Mesh::makeCube(const Vec3Df & v0, const Vec3Df & v1, vector<Vec3Df> & vert,
     tri.push_back(Triangle(7,4,3));
 }
 
-void Mesh::modifyMesh(const Bone & bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement){
+void Mesh::modifyMesh(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement){
     
     // modification de la position du bone
-    Vertex vert0 = vertices_bones[bone.getVertex(0)];
-    Vertex vert1 = vertices_bones[bone.getVertex(1)];
+    /*Vertex vert0 = vertices_bones[bones[idx_bone].getVertex(0)];
+    Vertex vert1 = vertices_bones[bones[idx_bone].getVertex(1)];
     
     Vertex new0 = Vertex(vert0.getPos() + x_displacement + y_displacement);
     Vertex new1 = Vertex( vert1.getPos() + x_displacement + y_displacement);
 
-    setVertices(bone.getVertex(0), new0);
-    setVertices(bone.getVertex(1), new1);
+    setBoneVertices(bones[idx_bone].getVertex(0), new0);
+    setBoneVertices(bones[idx_bone].getVertex(1), new1);*/
     
     // modification du mesh
     
-    //calcul du poids des différents bones
+    //calcul du poids des différents bones pour chaque vertex du mesh
     
+    std::vector <Eigen::VectorXf> w;
+    computeWeights(w);
+    
+    //modification de la position des différents vertices du mesh selon LBS.
+    // pas de sommes des contributions des différents bones car on ne modifie qu'un bone à la fois pour l'instant
+    
+    for (unsigned int i = 0; i< vertices.size() ; i++){
+        
+        if (w[idx_bone][i] != 0){
+            vertices[i].getPos();
+            Vertex vert = Vertex( w[idx_bone][i] * vertices[i].getPos() + x_displacement + y_displacement);
+            setMeshVertices(i, vert);
+        }
+    }
+    
+    recomputeSmoothVertexNormals(0);
+    
+}
+
+void Mesh::modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement){
+    
+    // modification de la position du bone
+    Vertex vert0 = vertices_bones[bones[idx_bone].getVertex(0)];
+    Vertex vert1 = vertices_bones[bones[idx_bone].getVertex(1)];
+    
+    Vertex new0 = Vertex(vert0.getPos() + x_displacement + y_displacement);
+    Vertex new1 = Vertex( vert1.getPos() + x_displacement + y_displacement);
+    
+    setBoneVertices(bones[idx_bone].getVertex(0), new0);
+    setBoneVertices(bones[idx_bone].getVertex(1), new1);
+
+}
+
+void Mesh::computeWeights(std::vector < Eigen::VectorXf> & w){
+    
+    //on calcule la matrice Laplacienne (cf article Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation pour savoir comment faire)
+    
+    //il faut calculer la matrice W = wij et V
+    Eigen::SparseMatrix<float> W(vertices.size(), vertices.size() );
+    W.setZero();
+    
+    Eigen::SparseMatrix<float> V(vertices.size(), vertices.size() );
+    V.setZero();
+    
+    for (unsigned int i=0 ; i< triangles.size() ; i++){
+        
+        Triangle t = triangles[i];
+        
+        for (unsigned int j = 0; j < 3 ; j++){
+            
+            Vec3Df vj = vertices[ t.getVertex(j)].getPos();
+            Vec3Df vj1 = vertices[ t.getVertex((j+1)%3)].getPos();
+            Vec3Df vj2 = vertices[ t.getVertex((j+2)%3)].getPos();
+            
+            //ATTENTION ACOS DOIT PRENDRE EN RADIAN !!
+            float angle = acos( Vec3Df::dotProduct(vj1-vj2, vj - vj2) / (Vec3Df::distance(vj1, vj2) * Vec3Df::distance(vj, vj2) ) ) * 180 / M_PI;
+            float angle2 = acos (Vec3Df::dotProduct( vj2 - vj1, vj - vj1) / (Vec3Df::distance(vj1, vj2) * Vec3Df::distance(vj, vj1) ) ) * 180 / M_PI;
+            
+            //test angle
+//            float angle3 = acos( Vec3Df::dotProduct(vj1 - vj, vj2 - vj) / (Vec3Df::distance(vj1, vj) * Vec3Df::distance(vj, vj2) ) ) * 180 / M_PI;
+//            cout << angle + angle2 + angle3 << endl;
+            
+            
+            W.coeffRef(t.getVertex(j), t.getVertex( (j+1)%3)) += 1/2 * cotan(angle);
+            V.coeffRef(t.getVertex(j), t.getVertex(j) ) += 1/2 * (cotan(angle) + cotan(angle2));
+            
+            //avant sans les sparsematrix...
+            //W( t.getVertex(j), t.getVertex( (j+1)%3 ) ) += 1/2 * cotan(angle);
+            //V( t.getVertex(j), t.getVertex(j) ) += 1/2* (cotan(angle) + cotan(angle2));
+        }
+    }
+    
+    //La matrice Laplacienne est L = D^-1.A
+    // pour l'instant je n'ai pas calcule D-1 qui doit être l'aire de la cellule de Voronoi...
+    
+    Eigen::SparseMatrix<float> L(vertices.size() , vertices.size() );
+    L.setZero();
+    
+    L = V - W;
+    
+    //on calcule la matrice H diagonale (cf article 2007 Baran and Popovic)
+    //et on définit pour chaque vertex, le bone le plus proche !
+    Eigen::SparseMatrix<float> H(vertices.size(), vertices.size());
+    H.setZero();
+
+    for (unsigned int i = 0; i< vertices.size(); i++){
+        
+        //on recheche le bone le plus proche du vertex i
+        float dist_min = MAXFLOAT;
+        int nb_bones = 0;
+        
+        for (unsigned int j = 0 ; j<bones.size() ; j++){
+            for (unsigned int k = 0 ; k<2; k++){
+                
+                // il faut que je vérifie que le segment est inclu à l'intérieur du mesh !!
+                
+                float distance = Vec3Df::distance(vertices_bones[ bones[j].getVertex(k)].getPos(), vertices[i].getPos());
+                
+                if (distance < dist_min) {
+                    dist_min = distance;
+                    nb_bones = 1;
+                    vertices[i].setBone(j);
+                }
+                if (distance == dist_min){
+                    nb_bones++;
+                }
+            }
+        }
+        
+        /*for (unsigned int j = 0; j< vertices_bones.size(); j++){
+            
+            //on vérifie si le segment est inclu dans l'intérieur du mesh
+            //à réfléchir si OK de transférer la bounding bo d'un objet avec la bounding box d'un mesh !
+            Vec3Df segment = vertices_bones[j].getPos() - vertices[i].getPos();
+            
+            float distance = Vec3Df::distance(vertices_bones[j].getPos(), vertices[i].getPos());
+            if (distance < dist_min){
+                dist_min = distance;
+                nb_bones = 1;
+            }
+            //si la distance est atteinte à plusieurs endroits, il faut les comptabiliser.
+            if (distance == dist_min){
+                nb_bones++;
+            }
+            
+        }*/
+        
+        H.insert(i,i) = nb_bones * 1/dist_min;
+    }
+    
+    
+    Eigen::SparseMatrix<float> A(vertices.size(), vertices.size());
+    //on veut résoudre A wi = b;
+    // cette résolution doit se faire pour chaque bone !! i = ith bone !!
+    std:vector < Eigen::VectorXf > p;
+    
+    for (unsigned int i = 0 ; i< bones.size(); i++){
+        
+        //on calcule pi qui est le vecteur pour le bone i
+        Eigen::VectorXf pi(vertices.size());
+        
+        for (unsigned int j = 0; j< vertices.size(); j++){
+            if (vertices[j].getBone() == i){
+                pi(j) = 1;
+            }else{
+                pi(j) = 0;
+            }
+        }
+        
+        p.push_back(pi);
+        
+    }
+
+    //std::vector < Eigen::VectorXf> w;
+    
+    for (unsigned int i = 0; i< bones.size() ; i++){
+        
+        Eigen::VectorXf wi(vertices.size()), b(vertices.size());
+        A = -L + H;
+        b = H * p[i];
+        
+        /*Eigen::SparseLU< Eigen::SparseMatrix<float> > solver;
+        //solver.compute(A);
+        solver.analyzePattern(A);
+        solver.factorize(A);*/
+        
+        Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > solver;
+        solver.compute(A);
+        
+        if (solver.info() != Eigen::Success) {
+            //decomposition failed
+            cout << " il y a une erreur dans la résolution du système " << endl;
+            cout << "type d'erreur : " << solver.info() << endl;
+            return;
+        }
+        
+        wi = solver.solve(b);
+        
+        w.push_back(wi);
+    }
+    
+    //test des wi - il faut que la somme pour un vertex des wi soit égal à 1 !
+    for (unsigned int j = 0; j< vertices.size(); j++){
+        
+        float sum_test = 0;
+        
+        for (unsigned int i = 0; i< bones.size() ; i++){
+            sum_test += w[i][j];
+        }
+        
+        if (sum_test > 1){
+            cout << sum_test << "sum" << endl;
+            cout << "error pour wi ! " << endl;
+            return;
+        }
+        
+        if (sum_test < 0.99 ) {
+            cout << sum_test << "sum" << endl;
+            cout << "error pour wi ! " << endl;
+            return;
+        }
+    }
+    
+
 }

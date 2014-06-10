@@ -108,27 +108,73 @@ void GLViewer::mousePressEvent (QMouseEvent * event) {
         if (event->button() == Qt::LeftButton){
             //on sélectionne le Bone cliqué si il existe un bone autour
             
-            //on repère la position de la souris et lance un rayon
+            //on repère la position de la souris et lance un rayon (ou des rayons pour améliorer la sélectivité du bone)
             qglviewer::Vec orig, dir;
             camera()->convertClickToLine(event->pos(), orig, dir);
             origin = Vec3Df(orig[0], orig[1], orig[2]);
             direction = Vec3Df(dir[0], dir[1], dir[2]);
-            Ray ray = Ray(origin, direction);
-            Bone bone;
-            Vec3Df intersectionPoint;
+            direction.normalize();
             
-            //on appelle une fonction pour trouver le bone d'intersection avec la BoundingBox
-            bool intersection = object.getBoneSelected(ray, bone, intersectionPoint);
+            //on lance nb_rays rayons pour les boundingbox
+            bool intersection = false;
+            //vector< pair< int, Vec3Df> > intersectionList;
+            map< int, pair <int, Vec3Df> > intersectionList; // , le premier int correspond à l'index du bone, le 2ème int est le nombre de fois où le bone a été touché par un rayon.
+            Vec3Df x, y;
+            direction.getTwoOrthogonals(x, y);
+            int nb_rays = 10; // dans chaque direction
+            float angle = 2; // en degré !
             
-            if(intersection){
-                //on a trouvé un bone intersecté, alors on le stock
-                //il faudrait marqué dans le menu, ou afficher que l'on a sélectionné un bone ou sinon l'encadrer en orange par exemple (cf blender)
+            for (unsigned int i = 0; i< nb_rays ; i++){
+                
+                float phi = 2 * M_PI/nb_rays * i;
+                
+                for (unsigned int j = 0; j< nb_rays ; j++){
+                    
+                    float teta = angle * j / nb_rays;
+                    
+                    Vec3Df newDirection = direction * cos(teta * M_PI / 180) + sin(teta * M_PI /180)*cos(phi)* x + sin(teta * M_PI / 180) * sin(phi) * y;
+                    
+                    Ray ray = Ray(origin, newDirection);
+                    int idx_bone;
+                    Vec3Df intersectionPoint;
+                    bool intersect = object.getBoneSelected(ray, idx_bone, intersectionPoint);
+                    
+                    if (intersect){
+                        
+                        intersection = true;
+                        map< int, pair< int, Vec3Df> >::iterator it;
+                        it = intersectionList.find(idx_bone);
+                        
+                        if (it == intersectionList.end()){
+                            //l'idx_bone n'est pas présent dans la map
+                            intersectionList[idx_bone] = pair<int, Vec3Df> (1, newDirection);
+                        }else{
+                            //l'idx est déjà présent dans la map et on augmente le nombre de fois que le bone a été touché
+                            pair<int, Vec3Df > bone_select = (*it).second;
+                            (*it).second = pair<int, Vec3Df >(bone_select.first + 1 , bone_select.second);
+                            
+                        }
+                    }
+                }
+            }
+                
+            if (intersection){
+                
+                //il faut trouver le bone qui a été toucher le plus de fois pour ensuite modifier direction et prendre la direction du bone le plus touché (utile pour la suite d'avoir la direction...)
+                
+                int max = 0;
+                for (map<int, pair<int, Vec3Df> >::iterator it = intersectionList.begin(); it != intersectionList.end(); it++){
+                    //le deuxième int correspond au nombre de fois où le bone a été touché par les rayons.
+                    if ( (*it).second.first > max){
+                        direction = (*it).second.second;
+                    }
+                }
+                
                 cout << "BONE !!! " << endl;
                 bone_selected = true;
-                mouse_x = event->pos().x();
-                mouse_y = event->pos().y();
+                mouse_x = mouse_interm_x = event->pos().x();
+                mouse_y = mouse_interm_y = event->pos().y();
                 
-                //coloration orange du bone à faire, créer une fonction dans mesh.cpp
                 
             }else{
                 cout << "je n'ai rien touché" << endl;
@@ -149,30 +195,31 @@ void GLViewer::mouseMoveEvent(QMouseEvent *event){
         if (bone_selected){
             //on va commencer à déplacer le bone, on prend le plan dans lequel se trouve le bone
             //on définit le plan : le point d'intersection du bone et le vecteur normal qui est celui de la caméra !
-            //cout << "je suis dans le move" << endl;
             
             //la translation selon x et y vaut :
-            float dx = -(event->pos().x() - mouse_x);
-            float dy = -(event->pos().y() - mouse_y);
+            float dx = -(event->pos().x() - mouse_interm_x);
+            float dy = -(event->pos().y() - mouse_interm_y);
             
             dy /= camera()->screenHeight()*0.2;
             dx /= camera()->screenWidth()*0.2;
             
             //on réactualise les valeurs de mouse_x, mouse_y
-            mouse_x = event->pos().x();
-            mouse_y = event->pos().y();
+            mouse_interm_x = event->pos().x();
+            mouse_interm_y = event->pos().y();
             
             //on déplace de dx et dy dans le plan les deux vertex du bones !
             //on définit le plan
             Ray ray = Ray(origin, direction);
-            Bone bone;
+            int idx_bone;
             Vec3Df intersectionPoint;
-            object.getBoneSelected(ray, bone, intersectionPoint);
+            object.getBoneSelected(ray, idx_bone, intersectionPoint);
             
             Vec3Df x, y;
             direction.getTwoOrthogonals(y, x);
             
-            object.getMesh().modifyMesh(bone, x*dx, y*dy);
+            object.getMesh().modifyBone(idx_bone, x*dx, y*dy);
+            updateGL();
+            //object.getMesh().modifyMesh(idx_bone, x*dx, y*dy);
             
             //ancienne méthode
             //std::vector<Vertex> bones_vertices = object.getMesh().getBonesVertices();
@@ -196,9 +243,30 @@ void GLViewer::mouseReleaseEvent(QMouseEvent *event){
     //quand on relache le bouton de gauche, on ne sélectionne plus le bone si on est en mode select
     if (selectionMode == Select){
         
-        if ( event->button() == Qt::LeftButton){
-            bone_selected = false;
-            updateGL();
+        if (bone_selected){
+            
+            if ( event->button() == Qt::LeftButton){
+                bone_selected = false;
+                //la translation selon x et y vaut :
+                float dx = -(event->pos().x() - mouse_x);
+                float dy = -(event->pos().y() - mouse_y);
+                
+                dy /= camera()->screenHeight()*0.2;
+                dx /= camera()->screenWidth()*0.2;
+                
+                //on déplace de dx et dy dans le plan les deux vertex du bones !
+                //on définit le plan
+                Ray ray = Ray(origin, direction);
+                int idx_bone;
+                Vec3Df intersectionPoint;
+                object.getBoneSelected(ray, idx_bone, intersectionPoint);
+                
+                Vec3Df x, y;
+                direction.getTwoOrthogonals(y, x);
+                
+                object.getMesh().modifyMesh(idx_bone, x*dx, y*dy);
+                updateGL();
+            }
         }
     }
     
