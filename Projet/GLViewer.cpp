@@ -196,7 +196,7 @@ void GLViewer::mouseMoveEvent(QMouseEvent *event){
             //on va commencer à déplacer le bone, on prend le plan dans lequel se trouve le bone
             //on définit le plan : le point d'intersection du bone et le vecteur normal qui est celui de la caméra !
             
-            //la translation selon x et y vaut :
+            //la translation selon x et y vaut : un - pour le y pour le sens de la souris soit OK.
             float dx = -(event->pos().x() - mouse_interm_x);
             float dy = -(event->pos().y() - mouse_interm_y);
             
@@ -214,12 +214,13 @@ void GLViewer::mouseMoveEvent(QMouseEvent *event){
             Vec3Df intersectionPoint;
             object.getBoneSelected(ray, idx_bone, intersectionPoint);
             
-            Vec3Df x, y;
-            direction.getTwoOrthogonals(y, x);
-            
+            //pour déplacer le bone, je le déplace seulement dans le plan de vue de la caméra
+            qglviewer::Vec dir= camera()->viewDirection();
+            Vec3Df dire = Vec3Df(dir[0], dir[1], dir[2]);
+            Vec3Df x,y;
+            dire.getTwoOrthogonals(x, y);
             object.getMesh().modifyBone(idx_bone, x*dx, y*dy);
             updateGL();
-            //object.getMesh().modifyMesh(idx_bone, x*dx, y*dy);
             
             //ancienne méthode
             //std::vector<Vertex> bones_vertices = object.getMesh().getBonesVertices();
@@ -261,9 +262,10 @@ void GLViewer::mouseReleaseEvent(QMouseEvent *event){
                 Vec3Df intersectionPoint;
                 object.getBoneSelected(ray, idx_bone, intersectionPoint);
                 
-                Vec3Df x, y;
-                direction.getTwoOrthogonals(y, x);
-                
+                qglviewer::Vec dir= camera()->viewDirection();
+                Vec3Df dire = Vec3Df(dir[0], dir[1], dir[2]);
+                Vec3Df x,y;
+                dire.getTwoOrthogonals(x, y);
                 object.getMesh().modifyMesh(idx_bone, x*dx, y*dy);
                 updateGL();
             }

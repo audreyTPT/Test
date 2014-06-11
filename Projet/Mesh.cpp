@@ -517,6 +517,7 @@ void Mesh::modifyMesh(const int & idx_bone, const Vec3Df & x_displacement, const
     }
     
     recomputeSmoothVertexNormals(0);
+    cout << "j'ai modifié le mesh" << endl;
     
 }
 
