@@ -13,8 +13,17 @@
 #include <vector>
 #include "BoundingBox.h"
 #include "Vertex.h"
+#endif /* defined(__Projet__Bone__) */
 
-class Bone {
+#ifndef _Armature_
+#define _Armature_
+
+#include "Armature.h"
+
+#endif
+
+class Bone : public Armature {
+    
 public:
     inline Bone () { init(0, 0); }
     inline Bone (unsigned int v0, unsigned int v1) { init (v0, v1); }
@@ -26,7 +35,7 @@ public:
     inline unsigned int getVertex (unsigned int i) const { return v[i]; }
     inline void setVertex (unsigned int i, unsigned int vertex) { v[i] = vertex; }
     inline bool contains (unsigned int vertex) const { return (v[0] == vertex || v[1] == vertex) ; }
-    inline BoundingBox getBoundingBox() const { return box; }
+    inline virtual std::string getType() { return "bone"; }
     
     void buildBox(Vertex v0, Vertex v1);
     
@@ -35,17 +44,8 @@ protected:
         v[0] = v0; v[1] = v1;
     }
     
-    inline void initBox( BoundingBox _box){
-        box = _box;
-    }
-    
 private:
     unsigned int v[2];
-    BoundingBox box;
 };
 
 extern std::ostream & operator<< (std::ostream & output, const Bone & t);
-
-
-
-#endif /* defined(__Projet__Bone__) */

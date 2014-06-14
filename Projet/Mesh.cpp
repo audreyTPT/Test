@@ -171,7 +171,7 @@ inline void glDrawPoint (const Vertex & v) {
 void Mesh::renderGL (bool flat) const {
     
     glColor3f(1.0, 1.0, 1.0);
-    glLoadName(7);
+    //glLoadName(7); plus besoin car je n'utilise plus le picking d'openGL.
     glBegin (GL_TRIANGLES);
     for (unsigned int i = 0; i < triangles.size (); i++) {
         const Triangle & t = triangles[i];
@@ -195,7 +195,8 @@ void Mesh::renderGL (bool flat) const {
     //dessiner le skelette
     glColor3f(1.0, 0.0, 0.0);
     glLineWidth(2);
-    glLoadName(3);
+    
+    //glLoadName(3); plus besoin car je n'utilise plus le picking d'openGl.
     
     /*glBegin(GL_TRIANGLES);
     
@@ -224,17 +225,36 @@ void Mesh::renderGL (bool flat) const {
     glEnd();*/
     
     glBegin (GL_LINES);
+    
     for (unsigned int i=0; i< bones.size(); i++){
         
-        const Bone & b = bones[i];
-        Vertex v[2];
-        for (unsigned int j=0; j<2; j++)
-            v[j] = vertices_bones[b.getVertex(j)];
-        
-        for (unsigned int j=0; j<2; j++){
-            glVertexVec3Df (v[j].getPos ());
+        Armature* b = bones[i];
+        //on dessine une ligne seulement si c'est un bone !
+        if (b->getType() == "bone"){
+            Vertex v[2];
+            for (unsigned int j=0; j<2; j++)
+                v[j] = vertices_bones[b->getVertex(j)];
+            
+            for (unsigned int j=0; j<2; j++){
+                glVertexVec3Df (v[j].getPos ());
+            }
         }
         
+    }
+    glEnd();
+    
+    glColor3f(0.0, 1.0, 0.0);
+    glPointSize(7);
+    glBegin(GL_POINTS);
+    
+    for (unsigned int i = 0; i< bones.size(); i++){
+        
+        Armature * h = bones[i];
+        //on dessine le point seulement si c'est une handle
+        if (h->getType() == "handle"){
+            Vertex v = vertices_bones[h->getVertex()];
+            glVertexVec3Df (v.getPos());
+        }
     }
     glEnd();
 }
@@ -270,6 +290,7 @@ void Mesh::loadOFF (const std::string & filename) {
 }
 
 void Mesh::loadOBJ(const std::string &filename) {
+    
     clear();
     ifstream input (filename.c_str ());
     if (!input)
@@ -340,13 +361,30 @@ void Mesh::loadOBJ(const std::string &filename) {
                 //on enlève la taille des vertices précédents !
                 unsigned int index1 = stof(line[1])-1-vertices.size();
                 unsigned int index2 = stof(line[2])-1-vertices.size();
-                Bone bone = Bone(index1, index2);
-                bone.buildBox(vertices_bones[index1], vertices_bones[index2]);
+                Bone* bone = new Bone(index1, index2);
+                bone->buildBox(vertices_bones[index1], vertices_bones[index2]);
                 bones.push_back(bone);
             }
             std::getline(input, word);
-        }else{
+            
+        }else if (line[0] == "lv"){
+            
+            // c'est un handle
+            if (line.size() == 2){
+                // c'est un handle
+                unsigned int index = stof(line[1])-1-vertices.size();
+                Handle* handle = new Handle(index);
+                handle->buildBox(vertices_bones[index]);
+                bones.push_back(handle);
+            }
+            
             std::getline(input, word);
+            cout << word << " 1 " << endl;
+            
+        }else{
+            
+            std::getline(input, word);
+            
         }
         
     }
@@ -487,18 +525,7 @@ void Mesh::makeCube(const Vec3Df & v0, const Vec3Df & v1, vector<Vec3Df> & vert,
 
 void Mesh::modifyMesh(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement){
     
-    // modification de la position du bone
-    /*Vertex vert0 = vertices_bones[bones[idx_bone].getVertex(0)];
-    Vertex vert1 = vertices_bones[bones[idx_bone].getVertex(1)];
-    
-    Vertex new0 = Vertex(vert0.getPos() + x_displacement + y_displacement);
-    Vertex new1 = Vertex( vert1.getPos() + x_displacement + y_displacement);
-
-    setBoneVertices(bones[idx_bone].getVertex(0), new0);
-    setBoneVertices(bones[idx_bone].getVertex(1), new1);*/
-    
     // modification du mesh
-    
     //calcul du poids des différents bones pour chaque vertex du mesh
     
     std::vector <Eigen::VectorXf> w;
@@ -523,16 +550,36 @@ void Mesh::modifyMesh(const int & idx_bone, const Vec3Df & x_displacement, const
 
 void Mesh::modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement){
     
-    // modification de la position du bone
-    Vertex vert0 = vertices_bones[bones[idx_bone].getVertex(0)];
-    Vertex vert1 = vertices_bones[bones[idx_bone].getVertex(1)];
-    
-    Vertex new0 = Vertex(vert0.getPos() + x_displacement + y_displacement);
-    Vertex new1 = Vertex( vert1.getPos() + x_displacement + y_displacement);
-    
-    setBoneVertices(bones[idx_bone].getVertex(0), new0);
-    setBoneVertices(bones[idx_bone].getVertex(1), new1);
+    if ( bones[idx_bone]->getType() == "bone"){
+        
+        // modification de la position du bone
+        Vertex vert0 = vertices_bones[bones[idx_bone]->getVertex(0)];
+        Vertex vert1 = vertices_bones[bones[idx_bone]->getVertex(1)];
+        
+        Vertex new0 = Vertex(vert0.getPos() + x_displacement + y_displacement);
+        Vertex new1 = Vertex( vert1.getPos() + x_displacement + y_displacement);
+        
+        setBoneVertices(bones[idx_bone]->getVertex(0), new0);
+        setBoneVertices(bones[idx_bone]->getVertex(1), new1);
+        
+    }else if ( bones[idx_bone]->getType() == "handle"){
+        
+        //modification de la position du handle
+        Vertex vert0 = vertices_bones[bones[idx_bone]->getVertex()];
+        Vertex new0 = Vertex(vert0.getPos() + x_displacement + y_displacement);
+        setBoneVertices(bones[idx_bone]->getVertex(), new0);
+        
+    }
 
+}
+
+void Mesh::addHandle(Vertex vert){
+    
+    vertices_bones.push_back(vert);
+    Handle * handle = new Handle(vertices_bones.size() - 1);
+    handle->buildBox(vertices_bones[vertices_bones.size() - 1]);
+    bones.push_back(handle);
+                                 
 }
 
 void Mesh::computeWeights(std::vector < Eigen::VectorXf> & w){
@@ -598,7 +645,7 @@ void Mesh::computeWeights(std::vector < Eigen::VectorXf> & w){
                 
                 // il faut que je vérifie que le segment est inclu à l'intérieur du mesh !!
                 
-                float distance = Vec3Df::distance(vertices_bones[ bones[j].getVertex(k)].getPos(), vertices[i].getPos());
+                float distance = Vec3Df::distance(vertices_bones[ bones[j]->getVertex(k)].getPos(), vertices[i].getPos());
                 
                 if (distance < dist_min) {
                     dist_min = distance;

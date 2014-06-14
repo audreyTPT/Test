@@ -105,6 +105,10 @@ void Window::initControlWidget () {
     QPushButton * snapshotButton  = new QPushButton ("Save preview", previewGroupBox);
     connect (snapshotButton, SIGNAL (clicked ()) , this, SLOT (exportGLImage ()));
     previewLayout->addWidget (snapshotButton);
+    
+    QPushButton * init = new QPushButton ("Recharger le mesh", previewGroupBox);
+    connect (init, SIGNAL(clicked()), viewer, SLOT (reinit()) );
+    previewLayout->addWidget (init);
 
     layout->addWidget (previewGroupBox);
     
@@ -115,11 +119,15 @@ void Window::initControlWidget () {
     modeGroup->setExclusive (true);
     QRadioButton * selectMode = new QRadioButton ("Selection mode", globalGroupBox);
     QRadioButton * standardMode = new QRadioButton ("Standard mode", globalGroupBox);
+    QRadioButton * editMode = new QRadioButton ("Edit mode", globalGroupBox);
     modeGroup->addButton(selectMode, static_cast<int>(GLViewer::Select));
     modeGroup->addButton(standardMode, static_cast<int>(GLViewer::Standard));
+    modeGroup->addButton(editMode, static_cast<int>(GLViewer::Edit));
     connect(modeGroup, SIGNAL(buttonClicked(int)), viewer, SLOT(setSelectionMode(int)));
+    standardMode->setChecked(true);
     globalLayout->addWidget(standardMode);
     globalLayout->addWidget(selectMode);
+    globalLayout->addWidget(editMode);
     
     QPushButton * bgColorButton  = new QPushButton ("Background Color", globalGroupBox);
     connect (bgColorButton, SIGNAL (clicked()) , this, SLOT (setBGColor()));

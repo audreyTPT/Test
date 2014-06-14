@@ -22,7 +22,7 @@ class GLViewer : public QGLViewer  {
 public:
     
     typedef enum {Flat=0, Smooth=1} RenderingMode;
-    typedef enum {Standard=0, Select=1} SelectionMode;
+    typedef enum {Standard=0, Select=1, Edit=2} SelectionMode;
     
     GLViewer ();
     virtual ~GLViewer ();
@@ -45,13 +45,16 @@ public slots :
     void setRenderingMode (int m) { setRenderingMode (static_cast<RenderingMode>(m)); }
     void setSelectionMode (SelectionMode m);
     void setSelectionMode (int m) { setSelectionMode (static_cast<SelectionMode> (m)); }
+    void reinit();
     
 protected :
     void init();
+    void initMesh();
     void draw ();
     QString helpString() const;
     void selection(int x, int y);
     void list_hits(GLint hits, GLuint *names);
+    bool computeBonesIntersected(QPoint pos, std::map< int, std::pair <int, Vec3Df> > & intersectionList );
 
     virtual void keyPressEvent (QKeyEvent * event);
     virtual void keyReleaseEvent (QKeyEvent * event);

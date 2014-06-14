@@ -27,7 +27,7 @@ bool Object::getBoneSelected(const Ray & ray, int & idx_bone, Vec3Df & intersect
         
         //il faut vérifier pour chaque bone si il est intersecté par le rayon vers la souris
         bool intersection = false;
-        BoundingBox box = mesh.getBones()[i].getBoundingBox();
+        BoundingBox box = mesh.getBones()[i]->getBoundingBox();
         intersection = ray.intersect( box, intersectionPoint );
         
         if (intersection){

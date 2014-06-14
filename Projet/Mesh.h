@@ -17,6 +17,7 @@
 #include "Triangle.h"
 #include "Edge.h"
 #include "Bone.h"
+#include "Handle.h"
 
 class Mesh {
 public:
@@ -35,8 +36,8 @@ public:
     const std::vector<Vertex> & getVertices () const { return vertices; }
     std::vector<Triangle> & getTriangles () { return triangles; }
     const std::vector<Triangle> & getTriangles () const { return triangles; }
-    std::vector<Bone> & getBones() { return bones; }
-    const std::vector<Bone> & getBones() const { return bones; }
+    std::vector<Armature *> & getBones() { return bones; }
+    const std::vector<Armature *> & getBones() const { return bones; }
     std::vector<Vertex> & getBonesVertices() { return vertices_bones; }
     const std::vector<Vertex> & getBonesVertices() const { return vertices_bones; }
     void setBoneVertices(unsigned int i, Vertex vert) { vertices_bones[i] = vert; }
@@ -58,6 +59,7 @@ public:
     void modifyMesh(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement);
     void modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement);
     void computeWeights(std::vector < Eigen::VectorXf> & w);
+    void addHandle(Vertex vert);
     
     void loadOFF (const std::string & filename);
     void loadOBJ (const std::string & filename);
@@ -78,7 +80,7 @@ private:
     std::vector<Vertex> vertices;
     std::vector<Triangle> triangles;
     std::vector<Vertex> vertices_bones;
-    std::vector<Bone> bones;
+    std::vector<Armature * > bones; // car c'est une classe abstraite
 };
 
 #endif // MESH_H

@@ -29,12 +29,10 @@ public:
     static void showStatusMessage (const QString & msg);  
     
 public slots :
-    //void renderRayImage ();
     void setBGColor ();
-    //void showRayImage ();
     void exportGLImage ();
-    //void exportRayImage ();
     void about ();
+    void reinit();
     
 private :
     void initControlWidget ();
