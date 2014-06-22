@@ -12,6 +12,7 @@
 #include <sstream>
 #include <OpenGL/gl.h>
 
+#include <opencv.hpp>
 
 using namespace std;
 
@@ -168,95 +169,291 @@ inline void glDrawPoint (const Vertex & v) {
     glDrawPoint (v.getPos (), v.getNormal ()); 
 }
 
-void Mesh::renderGL (bool flat) const {
+void Mesh::renderGL (bool boneVisu, bool area, bool flat, int idx_bone) const {
     
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3ub(232, 183, 155);
     //glLoadName(7); plus besoin car je n'utilise plus le picking d'openGL.
-    glBegin (GL_TRIANGLES);
-    for (unsigned int i = 0; i < triangles.size (); i++) {
-        const Triangle & t = triangles[i];
-        Vertex v[3];
-        for (unsigned int j = 0; j < 3; j++)
-            v[j] = vertices[t.getVertex(j)];
-        if (flat) {
-            Vec3Df normal = Vec3Df::crossProduct (v[1].getPos () - v[0].getPos (),
-                                                  v[2].getPos () - v[0].getPos ());
-            normal.normalize ();
-            glNormalVec3Df (normal);
+    
+    //si on est en area et qu'on a sélectionné un bone, alors on monte sa zone d'influence !
+    //seulement si on voit les bones !
+    if (boneVisu && area && idx_bone != -1){
+        
+        glBegin(GL_TRIANGLES);
+        
+        for (unsigned int i = 0; i<triangles.size(); i++){
+            const Triangle & t = triangles[i];
+            Vertex v[3];
+            for (unsigned int j = 0; j < 3; j++)
+                v[j] = vertices[t.getVertex(j)];
+            if (flat) {
+                Vec3Df normal = Vec3Df::crossProduct (v[1].getPos () - v[0].getPos (),
+                                                      v[2].getPos () - v[0].getPos ());
+                normal.normalize ();
+                glNormalVec3Df (normal);
+            }
+            for (unsigned int j = 0; j < 3; j++){
+                if (weights[idx_bone](t.getVertex(j)) >0){
+                    glColor3f(1.0, 0.0, 0.0);
+                }else{
+                    glColor3ub(232, 183, 155);
+                }
+                if (!flat)
+                    glDrawPoint (v[j]);
+                else
+                    glVertexVec3Df (v[j].getPos ());
+            }
+                
         }
-        for (unsigned int j = 0; j < 3; j++) 
-            if (!flat)
-                glDrawPoint (v[j]);
-            else
-                glVertexVec3Df (v[j].getPos ());
-    }
-    glEnd ();
-    
-    //dessiner le skelette
-    glColor3f(1.0, 0.0, 0.0);
-    glLineWidth(2);
-    
-    //glLoadName(3); plus besoin car je n'utilise plus le picking d'openGl.
-    
-    /*glBegin(GL_TRIANGLES);
-    
-    for (unsigned int i =0; i< bones.size() ; i++){
+        glEnd ();
+
         
-        const Bone & b = bones [i];
-        vector<Vec3Df> vert;
-        vector<Triangle> tri;
-        
-        const Vec3Df v0 = vertices_bones[b.getVertex(0)].getPos();
-        const Vec3Df v1 = vertices_bones[b.getVertex(1)].getPos();
-        
-        makeCube(v0, v1, vert, tri);
-        //appeler une fonction makeCube qui à partir d'un 2 vec3Df créer un cube centrée sur cette ligne
-        
-        for (unsigned int j=0; j< tri.size(); j++){
-            const Triangle & t = tri[j];
-            Vec3Df v[3];
-            for (unsigned int k = 0; k < 3; k++)
-                v[k] = vert[t.getVertex(k)];
-            for (unsigned int k = 0; k < 3; k++)
-                glVertexVec3Df(v[k]);
+    }else{
+        //on ne montre pas la zone d'influence des bones, donc on affiche le mesh classique
+        glBegin (GL_TRIANGLES);
+        for (unsigned int i = 0; i < triangles.size (); i++) {
+            const Triangle & t = triangles[i];
+            Vertex v[3];
+            for (unsigned int j = 0; j < 3; j++)
+                v[j] = vertices[t.getVertex(j)];
+            if (flat) {
+                Vec3Df normal = Vec3Df::crossProduct (v[1].getPos () - v[0].getPos (),
+                                                      v[2].getPos () - v[0].getPos ());
+                normal.normalize ();
+                glNormalVec3Df (normal);
+            }
+            for (unsigned int j = 0; j < 3; j++)
+                if (!flat)
+                    glDrawPoint (v[j]);
+                else
+                    glVertexVec3Df (v[j].getPos ());
         }
-        
+        glEnd ();
     }
-    glEnd();*/
     
-    glBegin (GL_LINES);
-    
-    for (unsigned int i=0; i< bones.size(); i++){
+    //seulement si on veut voir les bones !
+    if (boneVisu){
         
-        Armature* b = bones[i];
-        //on dessine une ligne seulement si c'est un bone !
-        if (b->getType() == "bone"){
-            Vertex v[2];
-            for (unsigned int j=0; j<2; j++)
-                v[j] = vertices_bones[b->getVertex(j)];
+        //dessiner le skelette
+        glColor3f(0.0, 0.0, 1.0);
+        glLineWidth(2);
+        glBegin (GL_LINES);
+        
+        for (unsigned int i=0; i< bones.size(); i++){
+            //on dessine seulement les bones non sélectionnés
+            if (i != idx_bone){
+                Armature* b = bones[i];
+                //on dessine une ligne seulement si c'est un bone !
+                if (b->getType() == "bone"){
+                    Vertex v[2];
+                    for (unsigned int j=0; j<2; j++)
+                        v[j] = vertices_bones[b->getVertex(j)];
+                    
+                    for (unsigned int j=0; j<2; j++){
+                        glVertexVec3Df (v[j].getPos ());
+                    }
+                }
+            }
             
-            for (unsigned int j=0; j<2; j++){
-                glVertexVec3Df (v[j].getPos ());
+        }
+        glEnd();
+        
+        for (unsigned int i =0; i<bones.size(); i++){
+            if (i != idx_bone){
+                
+                Armature * h = bones[i];
+                //on dessine le point seulement si c'est une handle
+                if (h->getType() == "handle"){
+                    Vertex v = vertices_bones[h->getVertex()];
+                    this->drawSphere(5, 5, v.getPos());
+                    //this->drawBoundingBox(i);
+                }
             }
         }
         
-    }
-    glEnd();
-    
-    glColor3f(0.0, 1.0, 0.0);
-    glPointSize(7);
-    glBegin(GL_POINTS);
-    
-    for (unsigned int i = 0; i< bones.size(); i++){
+        //ancienne version, les points pas bons car leur taille est défini selon la taille écran !
+        /*glPointSize(7);
+         glBegin(GL_POINTS);
+         
+         for (unsigned int i = 0; i< bones.size(); i++){
+         if (i != idx_bone){
+         Armature * h = bones[i];
+         //on dessine le point seulement si c'est une handle
+         if (h->getType() == "handle"){
+         Vertex v = vertices_bones[h->getVertex()];
+         glVertexVec3Df (v.getPos());
+         }
+         }
+         
+         }
+         glEnd();*/
         
-        Armature * h = bones[i];
-        //on dessine le point seulement si c'est une handle
-        if (h->getType() == "handle"){
-            Vertex v = vertices_bones[h->getVertex()];
-            glVertexVec3Df (v.getPos());
+        
+        // si idx_bone !=-1, on a sélectionné un bone et on le colorie d'une couleur différente
+        if(idx_bone != -1){
+            
+            if (bones[idx_bone]->getType() == "bone"){
+                //c'est un bone donc une ligne
+                glColor3f(1., 0., 0.);
+                glLineWidth(2);
+                glBegin (GL_LINES);
+                
+                Vertex v[2];
+                for (unsigned int j=0; j<2; j++)
+                    v[j] = vertices_bones[bones[idx_bone]->getVertex(j)];
+                
+                for (unsigned int j=0; j<2; j++){
+                    glVertexVec3Df (v[j].getPos ());
+                }
+                glEnd();
+                
+            }else{
+                //c'est un handle donc un point
+                glColor3f(1., 0., 0.);
+                Vertex v = vertices_bones[bones[idx_bone]->getVertex()];
+                this->drawSphere(5, 5, v.getPos());
+                //this->drawBoundingBox(idx_bone);
+                
+                /*glPointSize(7);
+                 glBegin (GL_POINTS);
+                 Vertex v = vertices_bones[bones[idx_bone]->getVertex()];
+                 glVertexVec3Df (v.getPos());
+                 glEnd();*/
+            }
+        }
+
+    }
+        
+}
+
+void Mesh::drawSphere(unsigned int resU, unsigned int resV, Vec3Df pos) const{
+    
+    std::vector<Vertex> V(resU * (resV-2) + 2);
+    std::vector<Triangle> T(resU * (resV-2)*2 + 2*resU);
+    
+    // resU pas en theta
+    // resV pas en phi
+    int count = 0;
+    float x,y,z,theta,phi;
+    // en coordonnées sphériques, avec r = 1;
+    // on ajoute à la main le pole nord
+    V[count].setPos(Vec3Df(0,1,0));
+    count++;
+    for(unsigned int i = 0; i < resU; i++)
+    {
+        theta = 2*M_PI*i/resU;
+        //cout << "theta = " << theta << endl;
+        for(unsigned int j = 1 ; j < (resV-1) ; j++)
+        {
+            phi = M_PI*j/(resV-1);
+            //cout << "Phi " << phi << endl;
+            x = sin(phi)*sin(theta);
+            y = cos(phi);
+            z = sin(phi)*cos(theta);
+            
+            V[count].setPos(Vec3Df(x,y,z));
+            count ++;
         }
     }
-    glEnd();
+    // on ajoute à la main le pole sud
+    int max = count;
+    V[count].setPos(Vec3Df(0,-1,0));
+    
+    //construction voisinnage pole nord
+    count = 0;
+    for (unsigned int i = 0; i < resU; i++)
+    {
+        T[i].setVertex(0, 0 %(resU*(resV-2)));
+        T[i].setVertex(1, (count + 1)%(resU*(resV-2)));
+        T[i].setVertex(2, (count + 1 + resV-2)%(resU*(resV-2)));
+        
+        count += resV-2;
+    }
+    
+    //on décompose les quadrilatere logiquement obtenu par la construction des points de la sphere
+    // en 2 triangles.
+    for(unsigned int j = 0 ; j < resU ; j++)//resU ppour valeur finale j
+    {
+        for (unsigned int i = 1; i < resV-2; i++)
+        {
+            if(j != resU-1){
+                //premier triangle du carré
+                T[2*(i-1)+2*j*(resV-3)+resU].setVertex(0, (i + j*(resV-2)));
+                T[2*(i-1)+2*j*(resV-3)+resU].setVertex(1, (i + j*(resV-2)+ 1));
+                T[2*(i-1)+2*j*(resV-3)+resU].setVertex(2, ( i + j*(resV-2)+ 1 + resV-2));
+                
+                //2eme triangle du carré
+                T[2*(i-1)+1+2*j*(resV-3)+resU].setVertex(0, (i + j*(resV-2)+ 1+ (resV-2)));
+                T[2*(i-1)+1+2*j*(resV-3)+resU].setVertex(1, (i + j*(resV-2) + (resV-2)));
+                T[2*(i-1)+1+2*j*(resV-3)+resU].setVertex(2, (i + j*(resV-2)));
+                
+            }
+            //On fait attention au raccordement entre derniers indices et premiers indices
+            else{
+                //premier triangle du carré
+                T[2*(i-1)+2*j*(resV-3)+resU].setVertex(0, (i + j*(resV-2)));
+                T[2*(i-1)+2*j*(resV-3)+resU].setVertex(1, (i + j*(resV-2)+ 1));
+                T[2*(i-1)+2*j*(resV-3)+resU].setVertex(2, ( i +1));
+                
+                //2eme triangle du carré
+                T[2*(i-1)+1+2*j*(resV-3)+resU].setVertex(0, ( i +1));
+                T[2*(i-1)+1+2*j*(resV-3)+resU].setVertex(1, i);
+                T[2*(i-1)+1+2*j*(resV-3)+resU].setVertex(2, (i + j*(resV-2)));
+                
+            }
+        }
+    }
+    
+    //construction voisinnage pole sud
+    count = 0;
+    for (unsigned int i = T.size()-resU; i < T.size(); i++)
+    {
+        T[i].setVertex(0, max);
+        T[i].setVertex(1, (count + resV-2)%(resU*(resV-2)) + resV-2);
+        T[i].setVertex(2, (count)%(resU*(resV-2)) + resV-2);
+        
+        count += resV-2;
+    }
+    
+    Mesh mesh = Mesh(V, T);
+    mesh.recomputeSmoothVertexNormals(0);
+    mesh.centerToCandScaleToF(pos, 0.3);
+    
+    //je dessine ensuite ces vertices et triangles
+    //glTranslatef(pos[0], pos[1], pos[2]);
+    glBegin (GL_TRIANGLES);
+    for (unsigned int i = 0; i < mesh.getTriangles().size(); i++) {
+        const Triangle & t = mesh.getTriangles()[i];
+        Vertex v[3];
+        for (unsigned int j = 0; j < 3; j++)
+            v[j] = mesh.getVertices()[t.getVertex(j)];
+        for (unsigned int j = 0; j < 3; j++)
+            glDrawPoint (v[j]);
+    }
+    glEnd ();
+    //glPopMatrix();
+    
+}
+
+void Mesh::centerToCandScaleToF(Vec3Df c, float f){
+    Vec3Df center;
+    for (unsigned int i = 0; i< vertices.size(); i++){
+        center +=vertices[i].getPos();
+    }
+    center /= vertices.size();
+    
+    float max = 0;
+    for (unsigned int i =0; i< vertices.size(); i++){
+        float dist = Vec3Df::distance(vertices[i].getPos(), center);
+        if ( dist > max){
+            max = dist;
+        }
+    }
+    
+    for (unsigned int i =0; i< vertices.size(); i++){
+        Vec3Df pos = vertices[i].getPos();
+        vertices[i].setPos( (pos -center)/max * f + c);
+    }
+    
 }
 
 void Mesh::loadOFF (const std::string & filename) {
@@ -332,10 +529,10 @@ void Mesh::loadOBJ(const std::string &filename) {
             //si c'est un objet on remplir les vertices du mesh
             //sinon, on remplit les vertices du skelette
             if (obj){
-                Vec3Df pos( stof(line[1]) , stof(line[2]), stof(line[3]) );
+                Vec3Df pos( atof(line[1].c_str()) , atof(line[2].c_str()), atof(line[3].c_str()) );
                 vertices.push_back (Vertex (pos, Vec3Df (1.0, 0.0, 0.0)));
            }else{
-                Vec3Df pos( stof(line[1]) , stof(line[2]), stof(line[3]) );
+                Vec3Df pos( atof(line[1].c_str()) , atof(line[2].c_str()), atof(line[3].c_str()) );
                 vertices_bones.push_back( Vertex(pos, Vec3Df (1.0, 0.0, 0.0)) );
             }
             
@@ -348,7 +545,7 @@ void Mesh::loadOBJ(const std::string &filename) {
             if (polygonSize == 4){
                 //c'est un triangle
                 //on enlève 1 car dans un .obj, l'index des vertices commencent à 1 et non 0 !
-                triangles.push_back (Triangle (stof(line[1])-1, stof(line[2])-1, stof(line[3])-1));
+                triangles.push_back (Triangle (atof(line[1].c_str())-1, atof(line[2].c_str())-1, atof(line[3].c_str())-1));
             }
             std::getline(input, word);
             
@@ -359,8 +556,8 @@ void Mesh::loadOBJ(const std::string &filename) {
                 // c'est une ligne
                 //on enlève 1 car dans un .obj, l'index des vertices commencent à 1 et non 0
                 //on enlève la taille des vertices précédents !
-                unsigned int index1 = stof(line[1])-1-vertices.size();
-                unsigned int index2 = stof(line[2])-1-vertices.size();
+                unsigned int index1 = atof(line[1].c_str())-1-vertices.size();
+                unsigned int index2 = atof(line[2].c_str())-1-vertices.size();
                 Bone* bone = new Bone(index1, index2);
                 bone->buildBox(vertices_bones[index1], vertices_bones[index2]);
                 bones.push_back(bone);
@@ -372,14 +569,13 @@ void Mesh::loadOBJ(const std::string &filename) {
             // c'est un handle
             if (line.size() == 2){
                 // c'est un handle
-                unsigned int index = stof(line[1])-1-vertices.size();
+                unsigned int index = atof(line[1].c_str())-1-vertices.size();
                 Handle* handle = new Handle(index);
                 handle->buildBox(vertices_bones[index]);
                 bones.push_back(handle);
             }
             
             std::getline(input, word);
-            cout << word << " 1 " << endl;
             
         }else{
             
@@ -459,14 +655,6 @@ void Mesh::rotateAroundX(float angle)
     }
     recomputeSmoothVertexNormals(0);
     
-    /*cout << "je vais essayer de tester eigen" << endl;
-    Eigen::MatrixXd m(2,2);
-    m(0,0) = 3;
-    m(1,0) = 2.5;
-    m(0,1) = -1;
-    m(1,1) = m(1,0) + m(0,1);
-    std::cout << m << std::endl;*/
-    
 }
 
 void Mesh::makeCube(const Vec3Df & v0, const Vec3Df & v1, vector<Vec3Df> & vert, vector<Triangle> & tri) const{
@@ -523,32 +711,79 @@ void Mesh::makeCube(const Vec3Df & v0, const Vec3Df & v1, vector<Vec3Df> & vert,
     tri.push_back(Triangle(7,4,3));
 }
 
+void Mesh::drawBoundingBox(int idx_bone) const {
+    BoundingBox box = bones[idx_bone]->getBoundingBox();
+    Vec3Df center = box.getCenter();
+  
+    Vec3Df min = box.getMin();
+    Vec3Df max = box.getMax();
+    Vec3Df v2(min[0] + box.getLength(), min[1], min[2]);
+    Vec3Df v3(min[0] + box.getLength(), min[1] + box.getHeight(), min[2]);
+    Vec3Df v4(min[0], min[1] + box.getLength(), min[2]);
+    Vec3Df v5(max[0] - box.getLength(), max[1] - box.getHeight(), max[2]);
+    Vec3Df v6(max[0], max[1] - box.getHeight(), max[2]);
+    Vec3Df v7(max[0] - box.getLength(), max[1], max[2]);
+    
+    glBegin(GL_QUADS);
+        glDrawPoint (min);
+        glDrawPoint (v2);
+        glDrawPoint (v3);
+        glDrawPoint (v4);
+    
+        glDrawPoint (max);
+        glDrawPoint (v7);
+        glDrawPoint (v4);
+        glDrawPoint (v3);
+    
+        glDrawPoint (max);
+        glDrawPoint (v3);
+        glDrawPoint (v2);
+        glDrawPoint (v6);
+    
+        glDrawPoint (v7);
+        glDrawPoint (max);
+        glDrawPoint (v6);
+        glDrawPoint (v5);
+    
+        glDrawPoint (v2);
+        glDrawPoint (min);
+        glDrawPoint (v5);
+        glDrawPoint (v6);
+    
+        glDrawPoint (v4);
+        glDrawPoint (v7);
+        glDrawPoint (v5);
+        glDrawPoint (min);
+    
+    glEnd();
+}
+
 void Mesh::modifyMesh(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement){
     
     // modification du mesh
     //calcul du poids des différents bones pour chaque vertex du mesh
     
-    std::vector <Eigen::VectorXf> w;
-    computeWeights(w);
+    //std::vector <Eigen::VectorXf> w;
+    computeWeights(weights);
     
     //modification de la position des différents vertices du mesh selon LBS.
     // pas de sommes des contributions des différents bones car on ne modifie qu'un bone à la fois pour l'instant
     
     for (unsigned int i = 0; i< vertices.size() ; i++){
         
-        if (w[idx_bone][i] != 0){
+        if (weights[idx_bone][i] != 0){
             vertices[i].getPos();
-            Vertex vert = Vertex( w[idx_bone][i] * vertices[i].getPos() + x_displacement + y_displacement);
+            Vertex vert = Vertex( weights[idx_bone][i] * vertices[i].getPos() + x_displacement + y_displacement);
             setMeshVertices(i, vert);
         }
     }
     
     recomputeSmoothVertexNormals(0);
-    cout << "j'ai modifié le mesh" << endl;
+    //cout << "j'ai modifié le mesh" << endl;
     
 }
 
-void Mesh::modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement){
+void Mesh::modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement, bool end_displacement){
     
     if ( bones[idx_bone]->getType() == "bone"){
         
@@ -562,6 +797,10 @@ void Mesh::modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const
         setBoneVertices(bones[idx_bone]->getVertex(0), new0);
         setBoneVertices(bones[idx_bone]->getVertex(1), new1);
         
+        if(end_displacement){
+            dynamic_cast<Bone*>(bones[idx_bone])->buildBox(new0, new1);
+        }
+        
     }else if ( bones[idx_bone]->getType() == "handle"){
         
         //modification de la position du handle
@@ -569,22 +808,123 @@ void Mesh::modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const
         Vertex new0 = Vertex(vert0.getPos() + x_displacement + y_displacement);
         setBoneVertices(bones[idx_bone]->getVertex(), new0);
         
+        if (end_displacement){
+            dynamic_cast<Handle*>(bones[idx_bone])->buildBox(new0);
+        }
+        
     }
 
 }
 
-void Mesh::addHandle(Vertex vert){
+void Mesh::addHandle(Vertex vert, bool influenceArea){
     
     vertices_bones.push_back(vert);
     Handle * handle = new Handle(vertices_bones.size() - 1);
     handle->buildBox(vertices_bones[vertices_bones.size() - 1]);
     bones.push_back(handle);
+    
+    //si la case des influenceArea est cohé, l'utilisateur peut directement
+    //recliqué sur le nouveau handle, il faut donc recalculé les poids
+    //si la case influenceArea n'est pas coché, pas besoin car quand elle sera coché le calcul sera effectué !
+    if (influenceArea){
+        computeWeights(weights);
+    }
                                  
+}
+
+void Mesh::computeAutoBones(float near, float far){
+    
+}
+
+void Mesh::suppr(int idx_bone){
+    
+    //vérifier que les vertices du bone ne sont pas utilisés pour d'autres bones
+    bool used = false;
+    
+    if (bones[idx_bone]->getType() == "bone"){
+        
+        int idx_vertices = bones[idx_bone]->getVertex(0);
+        int idx_vertices1 = bones[idx_bone]->getVertex(1);
+        
+        for (unsigned int i =0; i< bones.size(); i++){
+            
+            if (bones[i]->getType() == "bone"){
+                //c'est un bone il faut vérifier les deux vertices de ce bone
+                if ( bones[i]->getVertex(0) == idx_vertices || bones[i]->getVertex(1) == idx_vertices || bones[i]->getVertex(0) == idx_vertices1 || bones[i]->getVertex(1) == idx_vertices1){
+                    used = true;
+                }
+                
+            }else{
+                // c'est un handle, il suffit de vérifier le vertex du handle
+                if (bones[i]->getVertex(0) == idx_vertices || bones[i]->getVertex(0) == idx_vertices1){
+                    used = true;
+                }
+            }
+        }
+        
+    }else{
+        
+        int idx_vertices = bones[idx_bone]->getVertex(0);
+        
+        for (unsigned int i =0; i<bones.size(); i++){
+            
+            if (bones[i]->getType() == "bone"){
+                //c'est un bone il faut vérifier les deux vertices de ce bone
+                if (bones[i]->getVertex(0) == idx_vertices || bones[i]->getVertex(1) == idx_vertices){
+                    used = true;
+                }
+                                
+            }else{
+                //c'est un handle, il suffit de vérifier le vertex du handle
+                if (bones[i]->getVertex(0) == idx_vertices){
+                    used= true;
+                }
+            }
+        }
+    }
+    
+    if (used){
+        //on supprime seulement le bone et pas ses vertices
+        delete (bones[idx_bone]);
+        vector<Armature * >::iterator it = bones.begin() + idx_bone;
+        bones.erase(it);
+        
+    }else{
+        //on supprime le bone et les vertices
+        if (bones[idx_bone]->getType() == "bone"){
+            int index = bones[idx_bone]->getVertex(0);
+            int index2 = bones[idx_bone]->getVertex(1);
+            
+            std::vector<Vertex>::iterator it = vertices_bones.begin() + index;
+            vertices_bones.erase(it);
+            it = vertices_bones.begin() + index2;
+            vertices_bones.erase(it);
+            
+            delete bones[idx_bone];
+            vector<Armature * >::iterator it2 = bones.begin() + idx_bone;
+            bones.erase(it2);
+        }else{
+            
+            //c'est un handle, on supprime qu'un seul vertex
+            int index = bones[idx_bone]->getVertex(0);
+            
+            std::vector<Vertex>::iterator it = vertices_bones.begin() + index;
+            vertices_bones.erase(it);
+            
+            delete bones[idx_bone];
+            vector<Armature *>::iterator it2 = bones.begin() + idx_bone;
+            bones.erase(it2);
+        }
+        
+    }
+    
 }
 
 void Mesh::computeWeights(std::vector < Eigen::VectorXf> & w){
     
     //on calcule la matrice Laplacienne (cf article Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation pour savoir comment faire)
+    
+    w.clear();
     
     //il faut calculer la matrice W = wij et V
     Eigen::SparseMatrix<float> W(vertices.size(), vertices.size() );
@@ -615,9 +955,6 @@ void Mesh::computeWeights(std::vector < Eigen::VectorXf> & w){
             W.coeffRef(t.getVertex(j), t.getVertex( (j+1)%3)) += 1/2 * cotan(angle);
             V.coeffRef(t.getVertex(j), t.getVertex(j) ) += 1/2 * (cotan(angle) + cotan(angle2));
             
-            //avant sans les sparsematrix...
-            //W( t.getVertex(j), t.getVertex( (j+1)%3 ) ) += 1/2 * cotan(angle);
-            //V( t.getVertex(j), t.getVertex(j) ) += 1/2* (cotan(angle) + cotan(angle2));
         }
     }
     
@@ -658,24 +995,6 @@ void Mesh::computeWeights(std::vector < Eigen::VectorXf> & w){
             }
         }
         
-        /*for (unsigned int j = 0; j< vertices_bones.size(); j++){
-            
-            //on vérifie si le segment est inclu dans l'intérieur du mesh
-            //à réfléchir si OK de transférer la bounding bo d'un objet avec la bounding box d'un mesh !
-            Vec3Df segment = vertices_bones[j].getPos() - vertices[i].getPos();
-            
-            float distance = Vec3Df::distance(vertices_bones[j].getPos(), vertices[i].getPos());
-            if (distance < dist_min){
-                dist_min = distance;
-                nb_bones = 1;
-            }
-            //si la distance est atteinte à plusieurs endroits, il faut les comptabiliser.
-            if (distance == dist_min){
-                nb_bones++;
-            }
-            
-        }*/
-        
         H.insert(i,i) = nb_bones * 1/dist_min;
     }
     
@@ -701,20 +1020,13 @@ void Mesh::computeWeights(std::vector < Eigen::VectorXf> & w){
         p.push_back(pi);
         
     }
-
-    //std::vector < Eigen::VectorXf> w;
     
     for (unsigned int i = 0; i< bones.size() ; i++){
         
         Eigen::VectorXf wi(vertices.size()), b(vertices.size());
         A = -L + H;
         b = H * p[i];
-        
-        /*Eigen::SparseLU< Eigen::SparseMatrix<float> > solver;
-        //solver.compute(A);
-        solver.analyzePattern(A);
-        solver.factorize(A);*/
-        
+            
         Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > solver;
         solver.compute(A);
         

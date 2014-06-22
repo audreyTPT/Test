@@ -11,31 +11,147 @@
 #include "QtGui/QMenu"
 
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
 #include <string>
+#include <QFileDialog>
+#include <QTextStream>
+
+#include <opencv.hpp>
+
+static float depth_map = false;
 
 using namespace std;
 
 GLViewer::GLViewer () : QGLViewer () {
     wireframe = false;
-    //mode_selected = false;
+    influenceArea = false;
+    boneVisualisation = true;
     bone_selected = false;
+    suppr_selected = false;
     renderingMode = Smooth;
     selectionMode = Standard;
     initMesh();
+    updateGL();
     
 }
 
 void GLViewer::initMesh() {
     
     Mesh ramMesh;
-    ramMesh.loadOBJ ("models/skelgrosH.obj");
+    QString string = "models/bone.obj";
+    ramMesh.loadOBJ (string.toStdString());
     object  = Object(ramMesh);
     
-    //il faut ensuite calculer les bones automatiquement
+}
 
+void GLViewer::loadMesh(){
+    
+    QString name = QFileDialog::getOpenFileName(this,"Ouvrir un mesh");
+    Mesh mesh;
+    //hypothèse : le mesh se trouve dans le répertoire /models.
+    QStringList listName = name.split("/");
+    string finalName = "models/" + listName[listName.size()-1].toStdString();
+    mesh.loadOBJ(finalName);
+    object = Object(mesh);
+    //dans le cas où l bouton areainfluence est enclenché, il faut tout de suite calculer les poids !
+    if (influenceArea){
+        object.getMesh().initWeights();
+    }
+    updateGL();
+    
+}
+
+void GLViewer::supprBone(){
+    
+    // on ne peut supprimer un bone que quand on est dans le mode Edit
+    if (bone_selected && selectionMode == Edit){
+        //alors origin et direction sont à jour et permettent d'obtenir le bone selectionné
+        Ray ray = Ray(origin, direction);
+        int idx_bone;
+        Vec3Df intersectionPoint;
+        object.getBoneSelected(ray, idx_bone, intersectionPoint);
+        
+        object.getMesh().suppr(idx_bone);
+        //le bone est suuprimé donc n'est plus sélectionné
+        bone_selected = false;
+        
+        //dans le cas ou le bouton areainfluence est enclenché, il faut tout de suite calculer les poids !
+        if (influenceArea){
+            object.getMesh().initWeights();
+        }
+        updateGL();
+    }
+    
+}
+
+void GLViewer::exportMesh(){
+    //on enregistre le mesh ainsi que les bones dans un .obj (les bones sont des objets qui commencent par S)
+    //attention, lors de l'enregistrement, on enregistre d'abord les vertices du mesh et ensuite les vertices du bones (dont les indices sont ceux consécutifs aux vertices du mesh).
+    
+    //demander le nom sous lequel est enregistré le mesh et où
+    QString name = QFileDialog::getSaveFileName(this, "Enregistrer un fichier en .obj", QString(), "Mesh (*.obj)");
+    QFileInfo f( name);
+    if (f.suffix().isEmpty()){
+        name +=".obj";
+    }
+    
+    QFile file(name);
+    
+    if (!file.open(QIODevice::WriteOnly)){
+        cout << "c'est une erreur de fichier" << endl;
+    }else{
+        
+        QTextStream stream(&file);
+        //on enregistre d'abord l'objet
+        stream << "o face" << endl;
+        
+        //on enregistre tous les vertices
+        std::vector<Vertex> vertices = object.getMesh().getVertices();
+        
+        for (unsigned int i = 0; i< vertices.size(); i++){
+            stream << "v " << vertices[i].getPos()[0] << " " << vertices[i].getPos()[1] << " " << vertices[i].getPos()[2] << endl;
+        }
+        
+        //on enregistre toutes les faces (ici triangles)
+        //attention, si on veut rajouter la texture, il faut rajouter des / avec le numéro de la texture
+        //il faudrait rajouter aussi une autre boucle pour écrire les textures avec vt au début
+        std::vector<Triangle> triangles = object.getMesh().getTriangles();
+        
+        for (unsigned int i = 0; i< triangles.size() ; i++){
+            stream << "f " << triangles[i].getVertex(0)+1 << " " << triangles[i].getVertex(1)+1 << " " << triangles[i].getVertex(2)+1 << endl;
+        }
+        
+        //on enregistre ensuite les bones
+        stream << "s bone" << endl;
+        
+        //on enregistre les vertices des bones
+        std::vector<Vertex> bones_vertices = object.getMesh().getBonesVertices();
+        for (unsigned int i =0; i< bones_vertices.size(); i++){
+            stream << "v " << bones_vertices[i].getPos()[0] << " " << bones_vertices[i].getPos()[1] << " " << bones_vertices[i].getPos()[2] << endl;
+        }
+        
+        //on enregistre les lignes ou les poignées des bones
+        //les index des vertices des bones commencent à partir de la fin des index des vertices du mesh !
+        std::vector< Armature* > armatures = object.getMesh().getBones();
+        
+        for (unsigned int i =0; i< armatures.size(); i++){
+            
+            if (armatures[i]->getType() =="bone"){
+                // alors il s'agit d'un bone et on trace une ligne -> "l"
+                stream << "l " << armatures[i]->getVertex(0) + vertices.size()+1 << " " << armatures[i]->getVertex(1) + vertices.size()+1 << endl;
+            }
+            
+            if (armatures[i]->getType() == "handle"){
+                //alors il s'agit d'un handle, donc d'un unique point
+                stream << "lv " << armatures[i]->getVertex(0) + vertices.size()+1 << endl;
+            }
+        }
+        
+    }
+        
 }
 
 GLViewer::~GLViewer () {
@@ -50,6 +166,21 @@ void GLViewer::setWireframe (bool b) {
     updateGL ();
 }
 
+void GLViewer::setInfluenceArea(bool b){
+    influenceArea = b;
+    //je calcule le poids seulement si je veux afficher les zone d'influence !
+    if (b){
+        object.getMesh().initWeights();
+    }
+    updateGL();
+}
+
+void GLViewer::setBoneVisualisation(bool b){
+    boneVisualisation = !b;
+    
+    updateGL();
+}
+
 void GLViewer::setRenderingMode (RenderingMode m) {
     renderingMode = m;
     updateGL ();
@@ -57,15 +188,15 @@ void GLViewer::setRenderingMode (RenderingMode m) {
 
 void GLViewer::setSelectionMode(SelectionMode m){
     selectionMode = m;
+    //on réinitialise
+    bone_selected = false;
     updateGL();
 }
 
 void GLViewer::reinit(){
     
-    wireframe = false;
     bone_selected = false;
     initMesh();
-    
     updateGL();
 }
 
@@ -115,6 +246,9 @@ void GLViewer::mousePressEvent (QMouseEvent * event) {
         QGLViewer::mousePressEvent(event);
     }*/
     
+    //on va sélectionner un bone donc on réinitialise la variable
+    bone_selected = false;
+    
     if (selectionMode == Standard){
         QGLViewer::mousePressEvent(event);
         
@@ -143,12 +277,14 @@ void GLViewer::mousePressEvent (QMouseEvent * event) {
                 bone_selected = true;
                 mouse_x = mouse_interm_x = event->pos().x();
                 mouse_y = mouse_interm_y = event->pos().y();
+                updateGL();
                 
                 
             }else{
                 
                 cout << "je n'ai rien touché" << endl;
                 bone_selected = false;
+                updateGL();
             }
             
         }
@@ -160,11 +296,10 @@ void GLViewer::mousePressEvent (QMouseEvent * event) {
         //on fait l'hypothèse qu'une poignée est nécessairement sur la surface du mesh.
         
         if ( event->button() == Qt::LeftButton){
-            cout << "je suis bouton gauche" << endl;
+            //cout << "je suis bouton gauche" << endl;
             //je fais le déplacement des handles
             
             //je regarde si un bone ou handle a été sélectionné
-            
             std::map<int, std::pair<int, Vec3Df> > intersectionList;
             bool intersection = computeBonesIntersected(event->pos(), intersectionList);
             
@@ -179,20 +314,21 @@ void GLViewer::mousePressEvent (QMouseEvent * event) {
                     }
                 }
                 
-                cout << "BONE !!! " << endl;
+                cout << "BONE here !!! " << endl;
                 bone_selected = true;
                 mouse_x = mouse_interm_x = event->pos().x();
                 mouse_y = mouse_interm_y = event->pos().y();
+                updateGL(); //pour colorer le bone sélectionné
                 
                 
             }else{
                 cout << "je n'ai rien touché" << endl;
-                bone_selected = false;
+                updateGL(); // pour décolorer un éventuel ancien bone sélectionné !
             }
             
             
         }else{
-            cout << "je suis bouton droit" << endl;
+            //cout << "je suis bouton droit" << endl;
             //je fais l'ajout des handles dans le mesh
             
             bool found;
@@ -203,7 +339,7 @@ void GLViewer::mousePressEvent (QMouseEvent * event) {
                 
                 //ajout du handle dans le mesh
                 Vertex vert = Vertex(Vec3Df(vec[0], vec[1], vec[2]) );
-                object.getMesh().addHandle(vert);
+                object.getMesh().addHandle(vert, influenceArea);
                 updateGL();
             }else{
                 cout << " impossible de rajouter un handle sur le mesh " << endl;
@@ -247,8 +383,15 @@ void GLViewer::mouseMoveEvent(QMouseEvent *event){
             //pour déplacer le bone, je le déplace seulement dans le plan de vue de la caméra
             qglviewer::Vec dir= camera()->viewDirection();
             Vec3Df dire = Vec3Df(dir[0], dir[1], dir[2]);
-            Vec3Df x,y;
-            dire.getTwoOrthogonals(x, y);
+            //Vec3Df x,y;
+            //dire.getTwoOrthogonals(x, y);
+            qglviewer::Vec xcam = - camera()->rightVector();
+            qglviewer::Vec ycam = camera()->upVector();
+            Vec3Df x = Vec3Df(xcam[0], xcam[1], xcam[2]);
+            Vec3Df y = Vec3Df(ycam[0], ycam[1], ycam[2]);
+            
+            //on déplace uniquement le sommet du bone mais pas sa boundingBox, donc il est toujours repéré au même endroit par le rayon origin et dir
+            //on changera sa boundingbox une seule fois dans le mouserelease, alors dir et origin ne correspondront plus à ce bone mais c'est pas grave car on est obligé de recliquer sur mousepress pour sélectionner un bone et alors dir et origin seront mis à jour !
             object.getMesh().modifyBone(idx_bone, x*dx, y*dy);
             updateGL();
             
@@ -280,8 +423,12 @@ void GLViewer::mouseMoveEvent(QMouseEvent *event){
             //pour déplacer le bone, je le déplace seulement dans le plan de vue de la caméra
             qglviewer::Vec dir= camera()->viewDirection();
             Vec3Df dire = Vec3Df(dir[0], dir[1], dir[2]);
-            Vec3Df x,y;
-            dire.getTwoOrthogonals(x, y);
+            //Vec3Df x,y;
+            //dire.getTwoOrthogonals(x, y);
+            qglviewer::Vec xcam = - camera()->rightVector();
+            qglviewer::Vec ycam = camera()->upVector();
+            Vec3Df x = Vec3Df(xcam[0], xcam[1], xcam[2]);
+            Vec3Df y = Vec3Df(ycam[0], ycam[1], ycam[2]);
             object.getMesh().modifyBone(idx_bone, x*dx, y*dy);
             updateGL();
             
@@ -300,6 +447,7 @@ void GLViewer::mouseReleaseEvent(QMouseEvent *event){
         if (bone_selected){
             
             if ( event->button() == Qt::LeftButton){
+                
                 bone_selected = false;
                 //la translation selon x et y vaut :
                 float dx = -(event->pos().x() - mouse_x);
@@ -317,15 +465,37 @@ void GLViewer::mouseReleaseEvent(QMouseEvent *event){
                 
                 qglviewer::Vec dir= camera()->viewDirection();
                 Vec3Df dire = Vec3Df(dir[0], dir[1], dir[2]);
-                Vec3Df x,y;
-                dire.getTwoOrthogonals(x, y);
+                //Vec3Df x,y;
+                //dire.getTwoOrthogonals(x, y);
+                qglviewer::Vec xcam = - camera()->rightVector();
+                qglviewer::Vec ycam = camera()->upVector();
+                Vec3Df x = Vec3Df(xcam[0], xcam[1], xcam[2]);
+                Vec3Df y = Vec3Df(ycam[0], ycam[1], ycam[2]);
+                
+                //le bone est déjà déplace avec le mousemove mais il faut que j'actualise la boundingbox
+                object.getMesh().modifyBone(idx_bone, Vec3Df(0,0,0), Vec3Df(0,0,0), true);
                 object.getMesh().modifyMesh(idx_bone, x*dx, y*dy);
                 updateGL();
             }
         }
+    }else if (selectionMode == Edit){
+        
+        if (bone_selected){
+            
+            if ( event->button() == Qt::LeftButton){
+                
+                //dans le cas où je suis dans le mode edit et je déplace les bones.
+                //Quand j'ai fini de déplacer les bones, il faut que je mette à jour sa boundingBox
+                Ray ray = Ray(origin, direction);
+                int idx_bone;
+                Vec3Df intersectionPoint;
+                object.getBoneSelected(ray, idx_bone, intersectionPoint);
+                object.getMesh().modifyBone(idx_bone, Vec3Df(0,0,0), Vec3Df(0,0,0), true);
+                updateGL();
+            }
+        }
+    
     }
-    
-    
 }
 void GLViewer::wheelEvent (QWheelEvent * e) {
     QGLViewer::wheelEvent (e);
@@ -359,8 +529,65 @@ void GLViewer::draw () {
     const Vec3Df & trans = object.getTrans();
     glPushMatrix();
     glTranslatef(trans[0], trans[1], trans[2]);
-    object.getMesh().renderGL(renderingMode == Flat);
+    //pour colorier le bone sélectionné
+    if (bone_selected){
+        
+        //on obtient l'index du bone sélectionné
+        Ray ray = Ray(origin, direction);
+        int idx_bone;
+        Vec3Df intersectionPoint;
+        object.getBoneSelected(ray, idx_bone, intersectionPoint);
+        
+        //puis on le dessine en coloré
+        object.getMesh().renderGL(boneVisualisation, influenceArea, renderingMode == Flat, idx_bone);
+        
+        
+    }else{
+        //pas de bone sélectionné
+        object.getMesh().renderGL(boneVisualisation, influenceArea, renderingMode == Flat, -1);
+    }
+    
+    
+    //calcul de la depth map la première fois
+    if (depth_map){
+        cv::Mat depthMap(camera()->screenHeight(),camera()->screenWidth(), CV_32FC1);
+        
+        for (unsigned int i=0; i< camera()->screenHeight(); i++){
+            
+            for (unsigned int j = 0; j< camera()->screenWidth(); j++){
+                //on inverse pour que ca soit dans le bon sens...
+                QPoint pixel = QPoint(j,i);
+                bool found;
+                qglviewer::Vec vec = camera()->pointUnderPixel(pixel, found);
+                if (found){
+                    depthMap.at<float>(i,j) = -(vec[2] - camera()->position()[2]);
+                }else{
+                    depthMap.at<float>(i,j) = MAXFLOAT;
+                }
+            }
+        }
+        
+        double min, max;
+        cv::minMaxIdx(depthMap, &min, &max);
+        
+        for (unsigned int i = 0; i< depthMap.size().height; i++){
+            for (unsigned int j = 0; j< depthMap.size().width; j++){
+                if (depthMap.at<float>(i,j) == MAXFLOAT){
+                    depthMap.at<float>(i,j) = min;
+                }
+            }
+        }
+        
+        cv::normalize(depthMap, depthMap, 0, 1, CV_MINMAX);
+        //cv::Mat adjMap;
+        //cv::convertScaleAbs(depthMap, adjMap, 255/max);
+        cv::imshow("out", depthMap);
+        
+        depth_map = false;
+    }
+    
     glPopMatrix();
+        
 
 }
 
@@ -378,7 +605,7 @@ bool GLViewer::computeBonesIntersected(QPoint pos, std::map<int, std::pair<int, 
     Vec3Df x, y;
     direction.getTwoOrthogonals(x, y);
     int nb_rays = 10; // dans chaque direction
-    float angle = 2; // en degré !
+    float angle = 0.7; // en degré !
     
     for (unsigned int i = 0; i< nb_rays ; i++){
         
@@ -443,7 +670,7 @@ void GLViewer::selection(int x, int y){
     glMatrixMode(GL_MODELVIEW);
     const Vec3Df & trans = object.getTrans();
     glTranslatef(trans[0], trans[1], trans[2]);
-    object.getMesh().renderGL(renderingMode == Flat);
+    object.getMesh().renderGL(boneVisualisation, influenceArea, renderingMode == Flat);
     glMatrixMode(GL_PROJECTION);
  	glPopMatrix();
     

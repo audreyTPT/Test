@@ -22,7 +22,7 @@ static const uint qt_meta_data_GLViewer[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       6,   14, // methods
+      11,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -36,6 +36,11 @@ static const uint qt_meta_data_GLViewer[] = {
       87,   63,   30,   30, 0x0a,
      119,   63,   30,   30, 0x0a,
      141,   30,   30,   30, 0x0a,
+     150,   30,   30,   30, 0x0a,
+     163,   30,   30,   30, 0x0a,
+     174,   30,   30,   30, 0x0a,
+     186,   30,   30,   30, 0x0a,
+     209,   30,   30,   30, 0x0a,
 
        0        // eod
 };
@@ -46,6 +51,9 @@ static const char qt_meta_stringdata_GLViewer[] = {
     "setRenderingMode(int)\0"
     "setSelectionMode(SelectionMode)\0"
     "setSelectionMode(int)\0reinit()\0"
+    "exportMesh()\0loadMesh()\0supprBone()\0"
+    "setInfluenceArea(bool)\0"
+    "setBoneVisualisation(bool)\0"
 };
 
 void GLViewer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -60,6 +68,11 @@ void GLViewer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, vo
         case 3: _t->setSelectionMode((*reinterpret_cast< SelectionMode(*)>(_a[1]))); break;
         case 4: _t->setSelectionMode((*reinterpret_cast< int(*)>(_a[1]))); break;
         case 5: _t->reinit(); break;
+        case 6: _t->exportMesh(); break;
+        case 7: _t->loadMesh(); break;
+        case 8: _t->supprBone(); break;
+        case 9: _t->setInfluenceArea((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 10: _t->setBoneVisualisation((*reinterpret_cast< bool(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -97,9 +110,9 @@ int GLViewer::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 6)
+        if (_id < 11)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 6;
+        _id -= 11;
     }
     return _id;
 }

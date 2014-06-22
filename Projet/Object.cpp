@@ -36,6 +36,8 @@ bool Object::getBoneSelected(const Ray & ray, int & idx_bone, Vec3Df & intersect
         }
     }
     
+    //sinon on n'a pas de bone donc idx_bone = -1
+    idx_bone = -1;
     return false;
     
 }

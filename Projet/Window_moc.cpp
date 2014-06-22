@@ -22,7 +22,7 @@ static const uint qt_meta_data_Window[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       3,   14, // methods
+       2,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -32,14 +32,12 @@ static const uint qt_meta_data_Window[] = {
  // slots: signature, parameters, type, tag, flags
        7,   20,   20,   20, 0x0a,
       21,   20,   20,   20, 0x0a,
-      37,   20,   20,   20, 0x0a,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_Window[] = {
     "Window\0setBGColor()\0\0exportGLImage()\0"
-    "about()\0"
 };
 
 void Window::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -50,7 +48,6 @@ void Window::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         switch (_id) {
         case 0: _t->setBGColor(); break;
         case 1: _t->exportGLImage(); break;
-        case 2: _t->about(); break;
         default: ;
         }
     }
@@ -89,9 +86,9 @@ int Window::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 3)
+        if (_id < 2)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 3;
+        _id -= 2;
     }
     return _id;
 }

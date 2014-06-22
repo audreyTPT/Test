@@ -46,6 +46,11 @@ public slots :
     void setSelectionMode (SelectionMode m);
     void setSelectionMode (int m) { setSelectionMode (static_cast<SelectionMode> (m)); }
     void reinit();
+    void exportMesh();
+    void loadMesh();
+    void supprBone();
+    void setInfluenceArea(bool);
+    void setBoneVisualisation(bool);
     
 protected :
     void init();
@@ -65,10 +70,12 @@ protected :
 
 private:
     bool wireframe;
+    bool influenceArea;
+    bool boneVisualisation;
     //bool mode_selected;
     SelectionMode selectionMode;
     RenderingMode renderingMode;
-    bool bone_selected;
+    bool bone_selected, suppr_selected;
     Vec3Df origin, direction; //origin et direction de la caméra vers le point sélectionné
     float mouse_x, mouse_y, mouse_interm_x, mouse_interm_y;
     Object object;

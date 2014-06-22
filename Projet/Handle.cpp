@@ -17,9 +17,9 @@ ostream & operator<< (ostream & output, const Handle & t) {
 
 void Handle::buildBox(Vertex v0){
     
-    //on fait pour l'instant une boundingBox de taille 2.
-    Vec3Df min = v0.getPos() - Vec3Df(1,1,1);
-    Vec3Df max = v0.getPos() + Vec3Df(1,1,1);
+    //on fait pour l'instant une boundingBox de taille 0.6.
+    Vec3Df min = v0.getPos() - 0.1 *Vec3Df(1,1,1);
+    Vec3Df max = v0.getPos() + 0.1 * Vec3Df(1,1,1);
     
     box = BoundingBox(min, max);
     

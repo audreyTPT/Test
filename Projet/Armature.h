@@ -26,7 +26,7 @@ public:
     virtual void setVertex (unsigned int i, unsigned int vertex) =0;
     virtual bool contains (unsigned int vertex) const =0;
     virtual std::string getType() =0;
-    
+        
 protected:
     BoundingBox box;
     

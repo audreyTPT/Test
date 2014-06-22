@@ -31,8 +31,6 @@ public:
 public slots :
     void setBGColor ();
     void exportGLImage ();
-    void about ();
-    void reinit();
     
 private :
     void initControlWidget ();

@@ -21,27 +21,28 @@
 
 class Mesh {
 public:
-    inline Mesh () {} 
+    inline Mesh () {}
     inline Mesh (const std::vector<Vertex> & v) 
-        : vertices (v) {}
-    inline Mesh (const std::vector<Vertex> & v, 
+    : vertices (v) {}
+    inline Mesh (const std::vector<Vertex> & v,
                  const std::vector<Triangle> & t) 
-        : vertices (v), triangles (t)  {}
-    inline Mesh (const Mesh & mesh) 
+    : vertices (v), triangles (t)  { }
+    inline Mesh (const Mesh & mesh)
         : vertices (mesh.vertices), 
-          triangles (mesh.triangles), vertices_bones(mesh.vertices_bones), bones(mesh.bones) {}
-        
+    triangles (mesh.triangles), vertices_bones(mesh.vertices_bones), bones(mesh.bones) { }
+    
     inline virtual ~Mesh () {}
-    std::vector<Vertex> & getVertices () { return vertices; }
-    const std::vector<Vertex> & getVertices () const { return vertices; }
-    std::vector<Triangle> & getTriangles () { return triangles; }
-    const std::vector<Triangle> & getTriangles () const { return triangles; }
-    std::vector<Armature *> & getBones() { return bones; }
-    const std::vector<Armature *> & getBones() const { return bones; }
-    std::vector<Vertex> & getBonesVertices() { return vertices_bones; }
-    const std::vector<Vertex> & getBonesVertices() const { return vertices_bones; }
-    void setBoneVertices(unsigned int i, Vertex vert) { vertices_bones[i] = vert; }
-    void setMeshVertices(unsigned int i, Vertex vert) { vertices[i] = vert; }
+    inline std::vector<Vertex> & getVertices () { return vertices; }
+    inline const std::vector<Vertex> & getVertices () const { return vertices; }
+    inline std::vector<Triangle> & getTriangles () { return triangles; }
+    inline const std::vector<Triangle> & getTriangles () const { return triangles; }
+    inline std::vector<Armature *> & getBones() { return bones; }
+    inline const std::vector<Armature *> & getBones() const { return bones; }
+    inline std::vector<Vertex> & getBonesVertices() { return vertices_bones; }
+    inline const std::vector<Vertex> & getBonesVertices() const { return vertices_bones; }
+    inline void setBoneVertices(unsigned int i, Vertex vert) { vertices_bones[i] = vert; }
+    inline void setMeshVertices(unsigned int i, Vertex vert) { vertices[i] = vert; }
+    inline void initWeights() { computeWeights(weights); }
     
     void clear ();
     void clearGeometry ();
@@ -54,12 +55,18 @@ public:
     void computeDualEdgeMap (EdgeMapIndex & dualVMap1, EdgeMapIndex & dualVMap2);
     void markBorderEdges (EdgeMapIndex & edgeMap);
     
-    void renderGL (bool flat) const;
+    void renderGL (bool boneVisu, bool area, bool flat, int idx_bones = -1) const;
     void makeCube (const Vec3Df & v0, const Vec3Df & v1, std::vector<Vec3Df> & vert, std::vector<Triangle> & tri) const;
+    void drawSphere(unsigned int resU, unsigned int resV, Vec3Df pos) const;
+    void drawBoundingBox(int idx_bone) const ;
+    void centerToCandScaleToF(Vec3Df c, float f);
+    
     void modifyMesh(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement);
-    void modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement);
+    void modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement, bool end_displacement = 0);
     void computeWeights(std::vector < Eigen::VectorXf> & w);
-    void addHandle(Vertex vert);
+    void addHandle(Vertex vert, bool influenceArea);
+    void computeAutoBones(float near, float far);
+    void suppr(int idx_bone);
     
     void loadOFF (const std::string & filename);
     void loadOBJ (const std::string & filename);
@@ -81,6 +88,8 @@ private:
     std::vector<Triangle> triangles;
     std::vector<Vertex> vertices_bones;
     std::vector<Armature * > bones; // car c'est une classe abstraite
+    std::vector <Eigen::VectorXf> weights;
+    
 };
 
 #endif // MESH_H

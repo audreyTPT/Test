@@ -45,7 +45,6 @@ Window::Window () : QMainWindow (NULL) {
         exit (1);
     }
     setCentralWidget (viewer);
-    
     QDockWidget * controlDockWidget = new QDockWidget (this);
     initControlWidget ();
     
@@ -55,6 +54,11 @@ Window::Window () : QMainWindow (NULL) {
     controlDockWidget->setFeatures (QDockWidget::AllDockWidgetFeatures);
     statusBar()->showMessage("");
     cout << viewer->size().width() << endl;
+    
+    //viewer->setBackgroundColor( QColor(255,243,232)); // couleur rosée
+    viewer->setBackgroundColor( QColor(88, 175, 185)); // couleur bleu
+    viewer->updateGL();
+    
 }
 
 Window::~Window () {
@@ -62,10 +66,9 @@ Window::~Window () {
 }
 
 void Window::setBGColor () {
-    QColor c = QColorDialog::getColor (QColor (133, 152, 181), this);
+    QColor c = QColorDialog::getColor (QColor (200, 200, 200), this);
     if (c.isValid () == true) {
         cout << c.red () << endl;
-        //RayTracer::getInstance ()->setBackgroundColor (Vec3Df (c.red (), c.green (), c.blue ()));
         viewer->setBackgroundColor (c);
         viewer->updateGL ();
     }
@@ -73,12 +76,6 @@ void Window::setBGColor () {
 
 void Window::exportGLImage () {
     viewer->saveSnapshot (false, false);
-}
-
-void Window::about () {
-    QMessageBox::about (this, 
-                        "About This Program", 
-                        "<b>RayMini</b> <br> by <i>Tamy Boubekeur</i>.");
 }
 
 void Window::initControlWidget () {
@@ -91,6 +88,14 @@ void Window::initControlWidget () {
     QCheckBox * wireframeCheckBox = new QCheckBox ("Wireframe", previewGroupBox);
     connect (wireframeCheckBox, SIGNAL (toggled (bool)), viewer, SLOT (setWireframe (bool)));
     previewLayout->addWidget (wireframeCheckBox);
+    
+    QCheckBox * influenceArea = new QCheckBox ("Bone's influencial area", previewGroupBox);
+    connect (influenceArea, SIGNAL(toggled(bool)), viewer, SLOT(setInfluenceArea(bool)));
+    previewLayout->addWidget(influenceArea);
+    
+    QCheckBox * boneHide = new QCheckBox ("Hide bones", previewGroupBox);
+    connect (boneHide, SIGNAL(toggled(bool)), viewer, SLOT(setBoneVisualisation(bool)));
+    previewLayout->addWidget(boneHide);
    
     QButtonGroup * modeButtonGroup = new QButtonGroup (previewGroupBox);
     modeButtonGroup->setExclusive (true);
@@ -99,12 +104,17 @@ void Window::initControlWidget () {
     modeButtonGroup->addButton (flatButton, static_cast<int>(GLViewer::Flat));
     modeButtonGroup->addButton (smoothButton, static_cast<int>(GLViewer::Smooth));
     connect (modeButtonGroup, SIGNAL (buttonClicked (int)), viewer, SLOT (setRenderingMode (int)));
+    smoothButton->setChecked(true);
     previewLayout->addWidget (flatButton);
     previewLayout->addWidget (smoothButton);
     
-    QPushButton * snapshotButton  = new QPushButton ("Save preview", previewGroupBox);
-    connect (snapshotButton, SIGNAL (clicked ()) , this, SLOT (exportGLImage ()));
+    QPushButton * snapshotButton  = new QPushButton ("Load mesh and bones", previewGroupBox);
+    connect (snapshotButton, SIGNAL (clicked ()) , viewer, SLOT (loadMesh ()));
     previewLayout->addWidget (snapshotButton);
+    
+    QPushButton * saveMeshButton = new QPushButton ("Save mesh and bones", previewGroupBox);
+    connect (saveMeshButton, SIGNAL(clicked()), viewer, SLOT (exportMesh() ) );
+    previewLayout->addWidget(saveMeshButton);
     
     QPushButton * init = new QPushButton ("Recharger le mesh", previewGroupBox);
     connect (init, SIGNAL(clicked()), viewer, SLOT (reinit()) );
@@ -119,7 +129,15 @@ void Window::initControlWidget () {
     modeGroup->setExclusive (true);
     QRadioButton * selectMode = new QRadioButton ("Selection mode", globalGroupBox);
     QRadioButton * standardMode = new QRadioButton ("Standard mode", globalGroupBox);
-    QRadioButton * editMode = new QRadioButton ("Edit mode", globalGroupBox);
+    
+    QWidget * box = new QWidget(globalGroupBox);
+    QHBoxLayout * suppr_layout = new QHBoxLayout(box);
+    QPushButton * suppr = new QPushButton("Delete bone", box);
+    connect(suppr, SIGNAL(clicked()), viewer, SLOT(supprBone()));
+    QRadioButton * editMode = new QRadioButton ("Edit Mode", box);
+    suppr_layout->addWidget(editMode);
+    suppr_layout->addWidget(suppr);
+    
     modeGroup->addButton(selectMode, static_cast<int>(GLViewer::Select));
     modeGroup->addButton(standardMode, static_cast<int>(GLViewer::Standard));
     modeGroup->addButton(editMode, static_cast<int>(GLViewer::Edit));
@@ -127,15 +145,12 @@ void Window::initControlWidget () {
     standardMode->setChecked(true);
     globalLayout->addWidget(standardMode);
     globalLayout->addWidget(selectMode);
-    globalLayout->addWidget(editMode);
+    globalLayout->addWidget(box);
+    
     
     QPushButton * bgColorButton  = new QPushButton ("Background Color", globalGroupBox);
     connect (bgColorButton, SIGNAL (clicked()) , this, SLOT (setBGColor()));
     globalLayout->addWidget (bgColorButton);
-    
-    QPushButton * aboutButton  = new QPushButton ("About", globalGroupBox);
-    connect (aboutButton, SIGNAL (clicked()) , this, SLOT (about()));
-    globalLayout->addWidget (aboutButton);
     
     QPushButton * quitButton  = new QPushButton ("Quit", globalGroupBox);
     connect (quitButton, SIGNAL (clicked()) , qApp, SLOT (closeAllWindows()));
