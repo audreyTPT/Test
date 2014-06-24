@@ -52,6 +52,8 @@ void GLViewer::loadMesh(){
     QString name = QFileDialog::getOpenFileName(this,"Ouvrir un mesh");
     Mesh mesh;
     //hypothèse : le mesh se trouve dans le répertoire /models.
+    //normalement pas besoin de ne récupérer que la dernière partie (mais j'avais un problème au niveau du split qui ne se faisait pas bien en raison d'accent dans mon path).
+    cout << qPrintable(name) << endl;
     QStringList listName = name.split("/");
     string finalName = "models/" + listName[listName.size()-1].toStdString();
     model_name = finalName;
