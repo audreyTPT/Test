@@ -43,6 +43,7 @@ void Bone::buildBox(Vertex v0, Vertex v1){
         max[2] = v1.getPos()[2];
     }
     
+    //ancienne méthode pour faciliter la sélection : maintenant OK avec le lancer de plusieurs rayons !
     //on ajoute une marge d'erreur, pas selon x car ca peut toucher les autres bones !
     /*min[1] -= 2;
     min[2] -= 2;

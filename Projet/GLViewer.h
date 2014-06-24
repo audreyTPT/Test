@@ -51,6 +51,8 @@ public slots :
     void supprBone();
     void setInfluenceArea(bool);
     void setBoneVisualisation(bool);
+    void initTexture();
+    GLubyte* readPpm();
     
 protected :
     void init();
@@ -72,7 +74,7 @@ private:
     bool wireframe;
     bool influenceArea;
     bool boneVisualisation;
-    //bool mode_selected;
+    std::string model_name;
     SelectionMode selectionMode;
     RenderingMode renderingMode;
     bool bone_selected, suppr_selected;

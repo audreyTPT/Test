@@ -265,28 +265,9 @@ void Mesh::renderGL (bool boneVisu, bool area, bool flat, int idx_bone) const {
                 if (h->getType() == "handle"){
                     Vertex v = vertices_bones[h->getVertex()];
                     this->drawSphere(5, 5, v.getPos());
-                    //this->drawBoundingBox(i);
                 }
             }
         }
-        
-        //ancienne version, les points pas bons car leur taille est défini selon la taille écran !
-        /*glPointSize(7);
-         glBegin(GL_POINTS);
-         
-         for (unsigned int i = 0; i< bones.size(); i++){
-         if (i != idx_bone){
-         Armature * h = bones[i];
-         //on dessine le point seulement si c'est une handle
-         if (h->getType() == "handle"){
-         Vertex v = vertices_bones[h->getVertex()];
-         glVertexVec3Df (v.getPos());
-         }
-         }
-         
-         }
-         glEnd();*/
-        
         
         // si idx_bone !=-1, on a sélectionné un bone et on le colorie d'une couleur différente
         if(idx_bone != -1){
@@ -311,13 +292,7 @@ void Mesh::renderGL (bool boneVisu, bool area, bool flat, int idx_bone) const {
                 glColor3f(1., 0., 0.);
                 Vertex v = vertices_bones[bones[idx_bone]->getVertex()];
                 this->drawSphere(5, 5, v.getPos());
-                //this->drawBoundingBox(idx_bone);
                 
-                /*glPointSize(7);
-                 glBegin (GL_POINTS);
-                 Vertex v = vertices_bones[bones[idx_bone]->getVertex()];
-                 glVertexVec3Df (v.getPos());
-                 glEnd();*/
             }
         }
 
@@ -430,7 +405,6 @@ void Mesh::drawSphere(unsigned int resU, unsigned int resV, Vec3Df pos) const{
             glDrawPoint (v[j]);
     }
     glEnd ();
-    //glPopMatrix();
     
 }
 
@@ -657,6 +631,7 @@ void Mesh::rotateAroundX(float angle)
     
 }
 
+//ancienne méthode d'affichage des bones : obsolète
 void Mesh::makeCube(const Vec3Df & v0, const Vec3Df & v1, vector<Vec3Df> & vert, vector<Triangle> & tri) const{
     
     float width;// = 30;
@@ -711,6 +686,7 @@ void Mesh::makeCube(const Vec3Df & v0, const Vec3Df & v1, vector<Vec3Df> & vert,
     tri.push_back(Triangle(7,4,3));
 }
 
+//méthode d'affichage des handles autre que les sphères (non utilisé ici)
 void Mesh::drawBoundingBox(int idx_bone) const {
     BoundingBox box = bones[idx_bone]->getBoundingBox();
     Vec3Df center = box.getCenter();
@@ -779,7 +755,6 @@ void Mesh::modifyMesh(const int & idx_bone, const Vec3Df & x_displacement, const
     }
     
     recomputeSmoothVertexNormals(0);
-    //cout << "j'ai modifié le mesh" << endl;
     
 }
 
@@ -799,6 +774,7 @@ void Mesh::modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const
         
         if(end_displacement){
             dynamic_cast<Bone*>(bones[idx_bone])->buildBox(new0, new1);
+            computeWeights(weights);
         }
         
     }else if ( bones[idx_bone]->getType() == "handle"){
@@ -810,6 +786,7 @@ void Mesh::modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const
         
         if (end_displacement){
             dynamic_cast<Handle*>(bones[idx_bone])->buildBox(new0);
+            computeWeights(weights);
         }
         
     }
@@ -832,90 +809,90 @@ void Mesh::addHandle(Vertex vert, bool influenceArea){
                                  
 }
 
-void Mesh::computeAutoBones(float near, float far){
-    
-}
-
 void Mesh::suppr(int idx_bone){
     
     //vérifier que les vertices du bone ne sont pas utilisés pour d'autres bones
     bool used = false;
     
-    if (bones[idx_bone]->getType() == "bone"){
+    if (idx_bone != -1){
         
-        int idx_vertices = bones[idx_bone]->getVertex(0);
-        int idx_vertices1 = bones[idx_bone]->getVertex(1);
-        
-        for (unsigned int i =0; i< bones.size(); i++){
-            
-            if (bones[i]->getType() == "bone"){
-                //c'est un bone il faut vérifier les deux vertices de ce bone
-                if ( bones[i]->getVertex(0) == idx_vertices || bones[i]->getVertex(1) == idx_vertices || bones[i]->getVertex(0) == idx_vertices1 || bones[i]->getVertex(1) == idx_vertices1){
-                    used = true;
-                }
-                
-            }else{
-                // c'est un handle, il suffit de vérifier le vertex du handle
-                if (bones[i]->getVertex(0) == idx_vertices || bones[i]->getVertex(0) == idx_vertices1){
-                    used = true;
-                }
-            }
-        }
-        
-    }else{
-        
-        int idx_vertices = bones[idx_bone]->getVertex(0);
-        
-        for (unsigned int i =0; i<bones.size(); i++){
-            
-            if (bones[i]->getType() == "bone"){
-                //c'est un bone il faut vérifier les deux vertices de ce bone
-                if (bones[i]->getVertex(0) == idx_vertices || bones[i]->getVertex(1) == idx_vertices){
-                    used = true;
-                }
-                                
-            }else{
-                //c'est un handle, il suffit de vérifier le vertex du handle
-                if (bones[i]->getVertex(0) == idx_vertices){
-                    used= true;
-                }
-            }
-        }
-    }
-    
-    if (used){
-        //on supprime seulement le bone et pas ses vertices
-        delete (bones[idx_bone]);
-        vector<Armature * >::iterator it = bones.begin() + idx_bone;
-        bones.erase(it);
-        
-    }else{
-        //on supprime le bone et les vertices
         if (bones[idx_bone]->getType() == "bone"){
-            int index = bones[idx_bone]->getVertex(0);
-            int index2 = bones[idx_bone]->getVertex(1);
             
-            std::vector<Vertex>::iterator it = vertices_bones.begin() + index;
-            vertices_bones.erase(it);
-            it = vertices_bones.begin() + index2;
-            vertices_bones.erase(it);
+            int idx_vertices = bones[idx_bone]->getVertex(0);
+            int idx_vertices1 = bones[idx_bone]->getVertex(1);
             
-            delete bones[idx_bone];
-            vector<Armature * >::iterator it2 = bones.begin() + idx_bone;
-            bones.erase(it2);
+            for (unsigned int i =0; i< bones.size(); i++){
+                
+                if (bones[i]->getType() == "bone"){
+                    //c'est un bone il faut vérifier les deux vertices de ce bone
+                    if ( bones[i]->getVertex(0) == idx_vertices || bones[i]->getVertex(1) == idx_vertices || bones[i]->getVertex(0) == idx_vertices1 || bones[i]->getVertex(1) == idx_vertices1){
+                        used = true;
+                    }
+                    
+                }else{
+                    // c'est un handle, il suffit de vérifier le vertex du handle
+                    if (bones[i]->getVertex(0) == idx_vertices || bones[i]->getVertex(0) == idx_vertices1){
+                        used = true;
+                    }
+                }
+            }
+            
         }else{
             
-            //c'est un handle, on supprime qu'un seul vertex
-            int index = bones[idx_bone]->getVertex(0);
+            int idx_vertices = bones[idx_bone]->getVertex(0);
             
-            std::vector<Vertex>::iterator it = vertices_bones.begin() + index;
-            vertices_bones.erase(it);
-            
-            delete bones[idx_bone];
-            vector<Armature *>::iterator it2 = bones.begin() + idx_bone;
-            bones.erase(it2);
+            for (unsigned int i =0; i<bones.size(); i++){
+                
+                if (bones[i]->getType() == "bone"){
+                    //c'est un bone il faut vérifier les deux vertices de ce bone
+                    if (bones[i]->getVertex(0) == idx_vertices || bones[i]->getVertex(1) == idx_vertices){
+                        used = true;
+                    }
+                    
+                }else{
+                    //c'est un handle, il suffit de vérifier le vertex du handle
+                    if (bones[i]->getVertex(0) == idx_vertices){
+                        used= true;
+                    }
+                }
+            }
         }
         
+        if (used){
+            //on supprime seulement le bone et pas ses vertices
+            delete (bones[idx_bone]);
+            vector<Armature * >::iterator it = bones.begin() + idx_bone;
+            bones.erase(it);
+            
+        }else{
+            //on supprime le bone et les vertices
+            if (bones[idx_bone]->getType() == "bone"){
+                int index = bones[idx_bone]->getVertex(0);
+                int index2 = bones[idx_bone]->getVertex(1);
+                
+                std::vector<Vertex>::iterator it = vertices_bones.begin() + index;
+                vertices_bones.erase(it);
+                it = vertices_bones.begin() + index2;
+                vertices_bones.erase(it);
+                
+                delete bones[idx_bone];
+                vector<Armature * >::iterator it2 = bones.begin() + idx_bone;
+                bones.erase(it2);
+            }else{
+                
+                //c'est un handle, on supprime qu'un seul vertex
+                int index = bones[idx_bone]->getVertex(0);
+                
+                std::vector<Vertex>::iterator it = vertices_bones.begin() + index;
+                vertices_bones.erase(it);
+                
+                delete bones[idx_bone];
+                vector<Armature *>::iterator it2 = bones.begin() + idx_bone;
+                bones.erase(it2);
+            }
+            
+        }
+
     }
     
 }
@@ -947,11 +924,6 @@ void Mesh::computeWeights(std::vector < Eigen::VectorXf> & w){
             float angle = acos( Vec3Df::dotProduct(vj1-vj2, vj - vj2) / (Vec3Df::distance(vj1, vj2) * Vec3Df::distance(vj, vj2) ) ) * 180 / M_PI;
             float angle2 = acos (Vec3Df::dotProduct( vj2 - vj1, vj - vj1) / (Vec3Df::distance(vj1, vj2) * Vec3Df::distance(vj, vj1) ) ) * 180 / M_PI;
             
-            //test angle
-//            float angle3 = acos( Vec3Df::dotProduct(vj1 - vj, vj2 - vj) / (Vec3Df::distance(vj1, vj) * Vec3Df::distance(vj, vj2) ) ) * 180 / M_PI;
-//            cout << angle + angle2 + angle3 << endl;
-            
-            
             W.coeffRef(t.getVertex(j), t.getVertex( (j+1)%3)) += 1/2 * cotan(angle);
             V.coeffRef(t.getVertex(j), t.getVertex(j) ) += 1/2 * (cotan(angle) + cotan(angle2));
             
@@ -959,7 +931,7 @@ void Mesh::computeWeights(std::vector < Eigen::VectorXf> & w){
     }
     
     //La matrice Laplacienne est L = D^-1.A
-    // pour l'instant je n'ai pas calcule D-1 qui doit être l'aire de la cellule de Voronoi...
+    // pour l'instant j'ai pris D = Id mais on pourrait prendre l'aire de la cellule de Voronoi
     
     Eigen::SparseMatrix<float> L(vertices.size() , vertices.size() );
     L.setZero();

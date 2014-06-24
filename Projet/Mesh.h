@@ -65,7 +65,6 @@ public:
     void modifyBone(const int & idx_bone, const Vec3Df & x_displacement, const Vec3Df & y_displacement, bool end_displacement = 0);
     void computeWeights(std::vector < Eigen::VectorXf> & w);
     void addHandle(Vertex vert, bool influenceArea);
-    void computeAutoBones(float near, float far);
     void suppr(int idx_bone);
     
     void loadOFF (const std::string & filename);

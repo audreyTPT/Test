@@ -98,6 +98,7 @@ void setBoubekQTStyle (QApplication & app) {
     p.setColor (QPalette::HighlightedText, QColor (255, 255, 0)); // marked element text
 #else
     p.setColor (QPalette::Background, QColor (167, 167, 167 /*167 / 39, 39, 39*/)); // general background
+    
     p.setColor (QPalette::WindowText, QColor (203, 203, 203)); // general foreground
     p.setColor (QPalette::Base, QColor (60, 60, 60)); // text entry widget
     p.setColor (QPalette::AlternateBase, QColor (238, 112, 0)); // Text used on 'Base'

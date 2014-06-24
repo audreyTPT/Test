@@ -31,6 +31,7 @@ GLViewer::GLViewer () : QGLViewer () {
     boneVisualisation = true;
     bone_selected = false;
     suppr_selected = false;
+    model_name = "models/bone.obj";
     renderingMode = Smooth;
     selectionMode = Standard;
     initMesh();
@@ -41,8 +42,7 @@ GLViewer::GLViewer () : QGLViewer () {
 void GLViewer::initMesh() {
     
     Mesh ramMesh;
-    QString string = "models/bone.obj";
-    ramMesh.loadOBJ (string.toStdString());
+    ramMesh.loadOBJ(model_name);
     object  = Object(ramMesh);
     
 }
@@ -54,9 +54,10 @@ void GLViewer::loadMesh(){
     //hypothèse : le mesh se trouve dans le répertoire /models.
     QStringList listName = name.split("/");
     string finalName = "models/" + listName[listName.size()-1].toStdString();
+    model_name = finalName;
     mesh.loadOBJ(finalName);
     object = Object(mesh);
-    //dans le cas où l bouton areainfluence est enclenché, il faut tout de suite calculer les poids !
+    //dans le cas où le bouton areainfluence est enclenché, il faut tout de suite calculer les poids !
     if (influenceArea){
         object.getMesh().initWeights();
     }
@@ -75,7 +76,7 @@ void GLViewer::supprBone(){
         object.getBoneSelected(ray, idx_bone, intersectionPoint);
         
         object.getMesh().suppr(idx_bone);
-        //le bone est suuprimé donc n'est plus sélectionné
+        //le bone est supprimé donc n'est plus sélectionné
         bone_selected = false;
         
         //dans le cas ou le bouton areainfluence est enclenché, il faut tout de suite calculer les poids !
@@ -91,7 +92,7 @@ void GLViewer::exportMesh(){
     //on enregistre le mesh ainsi que les bones dans un .obj (les bones sont des objets qui commencent par S)
     //attention, lors de l'enregistrement, on enregistre d'abord les vertices du mesh et ensuite les vertices du bones (dont les indices sont ceux consécutifs aux vertices du mesh).
     
-    //demander le nom sous lequel est enregistré le mesh et où
+    //demander le nom sous lequel est enregistré le mesh
     QString name = QFileDialog::getSaveFileName(this, "Enregistrer un fichier en .obj", QString(), "Mesh (*.obj)");
     QFileInfo f( name);
     if (f.suffix().isEmpty()){
@@ -224,6 +225,7 @@ QString GLViewer::helpString() const {
 
 void GLViewer::keyPressEvent (QKeyEvent * /*event*/) {
 
+    //ancienne version avec le picking
     /*if (event->key() == Qt::Key_S){
         cout << "je suis en mode selection" << endl;
         mode_selected = !mode_selected;
@@ -237,6 +239,7 @@ void GLViewer::keyReleaseEvent (QKeyEvent * /*event*/) {
 
 void GLViewer::mousePressEvent (QMouseEvent * event) {
     
+    //ancienne version avec le picking
     /*if (mode_selected){
         cout << "je ne sais pas encore quoi faire" << endl;
         // créer une fonction dans object qui renvoie le bone qui a été sélectionné
@@ -293,7 +296,6 @@ void GLViewer::mousePressEvent (QMouseEvent * event) {
         bone_selected = false;
         
         //il faut que l'on puisse déplacer des poignées sans que le mesh ne soit déformer ou rajouter des poignées
-        //on fait l'hypothèse qu'une poignée est nécessairement sur la surface du mesh.
         
         if ( event->button() == Qt::LeftButton){
             //cout << "je suis bouton gauche" << endl;
@@ -328,9 +330,8 @@ void GLViewer::mousePressEvent (QMouseEvent * event) {
             
             
         }else{
-            //cout << "je suis bouton droit" << endl;
+
             //je fais l'ajout des handles dans le mesh
-            
             bool found;
             QPoint pixel = QPoint(event->pos().x(), event->pos().y());
             qglviewer::Vec vec = camera()->pointUnderPixel(pixel, found);
@@ -366,6 +367,7 @@ void GLViewer::mouseMoveEvent(QMouseEvent *event){
             float dx = -(event->pos().x() - mouse_interm_x);
             float dy = -(event->pos().y() - mouse_interm_y);
             
+            //permet de régler la vitesse du bone par rapport à la vitesse de la souris
             dy /= camera()->screenHeight()*0.2;
             dx /= camera()->screenWidth()*0.2;
             
@@ -383,8 +385,6 @@ void GLViewer::mouseMoveEvent(QMouseEvent *event){
             //pour déplacer le bone, je le déplace seulement dans le plan de vue de la caméra
             qglviewer::Vec dir= camera()->viewDirection();
             Vec3Df dire = Vec3Df(dir[0], dir[1], dir[2]);
-            //Vec3Df x,y;
-            //dire.getTwoOrthogonals(x, y);
             qglviewer::Vec xcam = - camera()->rightVector();
             qglviewer::Vec ycam = camera()->upVector();
             Vec3Df x = Vec3Df(xcam[0], xcam[1], xcam[2]);
@@ -423,8 +423,6 @@ void GLViewer::mouseMoveEvent(QMouseEvent *event){
             //pour déplacer le bone, je le déplace seulement dans le plan de vue de la caméra
             qglviewer::Vec dir= camera()->viewDirection();
             Vec3Df dire = Vec3Df(dir[0], dir[1], dir[2]);
-            //Vec3Df x,y;
-            //dire.getTwoOrthogonals(x, y);
             qglviewer::Vec xcam = - camera()->rightVector();
             qglviewer::Vec ycam = camera()->upVector();
             Vec3Df x = Vec3Df(xcam[0], xcam[1], xcam[2]);
@@ -465,8 +463,6 @@ void GLViewer::mouseReleaseEvent(QMouseEvent *event){
                 
                 qglviewer::Vec dir= camera()->viewDirection();
                 Vec3Df dire = Vec3Df(dir[0], dir[1], dir[2]);
-                //Vec3Df x,y;
-                //dire.getTwoOrthogonals(x, y);
                 qglviewer::Vec xcam = - camera()->rightVector();
                 qglviewer::Vec ycam = camera()->upVector();
                 Vec3Df x = Vec3Df(xcam[0], xcam[1], xcam[2]);
@@ -526,6 +522,7 @@ void GLViewer::init() {
 
 void GLViewer::draw () {
     
+    
     const Vec3Df & trans = object.getTrans();
     glPushMatrix();
     glTranslatef(trans[0], trans[1], trans[2]);
@@ -549,6 +546,7 @@ void GLViewer::draw () {
     
     
     //calcul de la depth map la première fois
+    //ici depth_map est initialisé à 0 donc on ne le fais pas (ca prend beaucoup de temps pour l'instant)
     if (depth_map){
         cv::Mat depthMap(camera()->screenHeight(),camera()->screenWidth(), CV_32FC1);
         
@@ -588,7 +586,6 @@ void GLViewer::draw () {
     
     glPopMatrix();
         
-
 }
 
 bool GLViewer::computeBonesIntersected(QPoint pos, std::map<int, std::pair<int, Vec3Df> > &intersectionList){
@@ -604,6 +601,7 @@ bool GLViewer::computeBonesIntersected(QPoint pos, std::map<int, std::pair<int, 
     bool intersection = false;
     Vec3Df x, y;
     direction.getTwoOrthogonals(x, y);
+    //ses deux paramètres permettent d'ajuster la sélection des bones !
     int nb_rays = 10; // dans chaque direction
     float angle = 0.7; // en degré !
     
@@ -645,6 +643,8 @@ bool GLViewer::computeBonesIntersected(QPoint pos, std::map<int, std::pair<int, 
 
     
 }
+
+//ancienne méthode de sélection : le picking
 void GLViewer::selection(int x, int y){
     
     GLuint buff[64] = {0};
@@ -680,20 +680,11 @@ void GLViewer::selection(int x, int y){
     
 }
 
+//ancienne méthode de sélection : le picking
 void GLViewer::list_hits(GLint hits, GLuint *names)
 {
  	int i;
     
- 	/*
-     For each hit in the buffer are allocated 4 bytes:
-     1. Number of hits selected (always one,
-     beacuse when we draw each object
-     we use glLoadName, so we replace the
-     prevous name in the stack)
-     2. Min Z
-     3. Max Z
-     4. Name of the hit (glLoadName)
-     */
     if (hits == 0){
         cout << "pas d''objet selectionne " << endl;
 
